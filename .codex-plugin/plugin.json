@@ -1,0 +1,20 @@
+{
+  "name": "ai-delivery-workflow",
+  "version": "0.1.0",
+  "description": "Lightweight, evidence-first software delivery for Codex. 中文优先的 AI 软件交付工作流。",
+  "author": {"name": "Long", "url": "https://github.com/longzhang2026-sudo"},
+  "homepage": "https://github.com/longzhang2026-sudo/ai-delivery-workflow",
+  "repository": "https://github.com/longzhang2026-sudo/ai-delivery-workflow",
+  "license": "MIT",
+  "keywords": ["codex", "skills", "software-delivery", "verification", "workflow"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "AI Delivery Workflow",
+    "shortDescription": "从需求到可复现交付：轻量流程、独立验证、真实证据。",
+    "longDescription": "将软件需求整理成任务契约，按影响范围实现，以独立上下文和真实证据验收，最终交付可复现产物并同步项目知识。支持项目内初始化与任务恢复。",
+    "developerName": "Long",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "使用 $ai-delivery 检查当前项目初始化状态，并推进我的软件交付任务。"
+  }
+}
