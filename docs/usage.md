@@ -22,15 +22,15 @@ $ai-delivery
 python .agents/skills/ai-delivery/scripts/workflow.py new-task --project . --id TASK-001 --title "修复筛选分页联动"
 ```
 
-生成 `.ai-workflow/tasks/TASK-001.md`。同 ID 已存在时拒绝覆盖；恢复用原记录，不新建副本。项目已有任务文档时优先复用，只要覆盖协议必要字段即可，不强制生成第二份。
+生成 `.ai-workflow/tasks/TASK-001.md`。同 ID 已存在时拒绝覆盖；恢复用原记录，不新建副本。新模板在同一文件内包含 Task Record schema v1 JSON 机器区和人读正文。机器区是状态、计数和 Evidence 引用的机械来源，详细规则见 [Task Record schema](../skills/ai-delivery/references/task-record-schema.md)。
 
 ## 2. 把“完成”变成可观察的验收
 
 不要只写“优化体验”“保证稳定”。例如“在第 3 页切换筛选后，页码变为 1，请求携带新筛选条件；普通翻页继续使用当前筛选”。明确输入与预期后，才能验证。
 
-- Required：本任务必须证明。
-- Conditional：先写触发条件；满足时加入必要验收。未知不能默认不适用。
-- Optional：明确不影响必要交付，不能把原 Required 随意降级。
+- Required：适用时必须 PASS；执行该 AC 前有依据确认本任务实例不适用时，可以记录 `NOT_APPLICABLE + N/A`、理由和依据。
+- Conditional：先写触发条件；`TRIGGERED / NOT_TRIGGERED / UNKNOWN` 必须对应 `APPLICABLE / NOT_APPLICABLE / UNKNOWN`。触发后加入必要验收，未知不能默认不适用。
+- Optional：不影响必要交付，但 PASS 仍需 Evidence，N/A 仍需不适用依据，其他结论必须披露；不能把原 Required 随意降级。
 
 规则冲突、范围扩大或兼容要求不清才由人决策。用户原请求已定义清楚时，Agent 可以记录该授权依据继续，不要求每个字段重新确认。
 
@@ -44,6 +44,8 @@ Builder 检查调用链与必要回归，按编号小步实现。复用既有构
 - **Phase B 输入**：Graph、Diff/版本、构建运行入口、测试数据、已知问题和原始报告。
 
 未提交变更要记录 Diff 和新增/删除清单；只有 commit SHA 无法标识整个工作产物。
+
+Builder 自检完成后可运行 `validate-task` 检查当前记录。WARN 表示 DRAFT 中仍有合法缺口；ERROR 表示结构或状态矛盾。Guard 不替代下一步独立验证。
 
 ## 4. 进行独立验证
 
@@ -65,7 +67,7 @@ $ai-delivery
 
 ## 5. 失败、阻塞与继续
 
-正式 FAIL 后先分类和查额度，不能把每次重试都当新任务。任务记录按触发追加：
+正式 FAIL 后先分类和查额度，不能把每次重试都当新任务。任务记录正文按触发追加以下说明，并同步更新机器区 usage；不要在正文维护第二套累计值：
 
 ```text
 Loop / Exception
@@ -99,6 +101,14 @@ $ai-delivery
 4. 知识：更新了哪些已有文档并回读；或者查阅后无增量及理由。
 
 只有协议 DONE 条件全部满足才标完成。若客户确认在 Contract 中是必需，技术验收通过后仍需该确认；若未要求，不能临时增加一道审批。
+
+标记 DONE 前运行：
+
+```bash
+python .agents/skills/ai-delivery/scripts/workflow.py validate-task --project . --id TASK-001
+```
+
+只有无 ERROR 才能继续由负责人依据真实证据关闭任务。产物不一致 WARN 必须先复核 Evidence；Guard 成功本身不能作为业务 PASS。
 
 ## 7. 团队与首轮试点
 

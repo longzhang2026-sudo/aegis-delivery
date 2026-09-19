@@ -3,7 +3,7 @@
 [中文详细文档](README.md) · [MIT](LICENSE)
 
 A project-local Codex Skill for lightweight, evidence-first software delivery.
-Package **0.1.0** implements Long's workflow protocol **1.6**. The detailed workflow
+Package **0.2.0** implements Long's workflow protocol **1.6**. The detailed workflow
 and operational guides are currently in Chinese; this page is the English entry point.
 
 `Request → Contract → Plan & Impact → Build → Independent Verify → Delivery & Knowledge Sync → Done`
@@ -11,7 +11,7 @@ and operational guides are currently in Chinese; this page is the English entry 
 Use it for a reproducible bug, one feature slice, or a necessary cross-module change.
 It defines acceptance before implementation, separates builder and verifier context,
 limits repair attempts, and ties conclusions to actual artifact/environment evidence.
-It is agent guidance, not an unattended orchestration service or hard security boundary.
+It is agent guidance plus deterministic record validation, not an unattended orchestration service or hard security boundary.
 Production operations are outside the first release's scope.
 
 ## Install into an existing project
@@ -72,6 +72,18 @@ Resume by giving Codex the same task record, current artifact and remaining limi
 See [usage](docs/usage.md), [protocol](skills/ai-delivery/references/protocol.md),
 [example](examples/bug-fix.md), and [design/source notes](docs/design.md).
 
+Before delivery or resume, validate the task record without modifying it:
+
+```bash
+python3 .agents/skills/ai-delivery/scripts/workflow.py validate-task \
+  --project . --id TASK-001
+```
+
+A structurally valid draft may return warnings with exit code 0. Contradictory state or
+an unmet DONE gate returns exit code 2. The guard checks record consistency; it does not
+prove application behavior, verifier independence, or tamper-free history. Legacy v0.1
+tasks require manual migration using the [record schema](skills/ai-delivery/references/task-record-schema.md#旧任务).
+
 ## Validate and contribute
 
 ```bash
@@ -81,5 +93,5 @@ python3 -m unittest discover -s tests -v
 Installer and package checks are automated. Agent behavior scenarios and real project
 pilots are separate validation work; no unrun pilot is claimed as passed.
 See [testing](docs/testing.md), [contributing](CONTRIBUTING.md), and [changelog](CHANGELOG.md).
-The optional `.codex-plugin/plugin.json` manifest supports Codex plugin packaging;
-it does not imply official marketplace publication or tool permissions.
+The root `plugin.json` is the portable Agent Plugin manifest. `.codex-plugin/plugin.json`
+remains the Codex interface fallback; neither implies marketplace publication or tool permissions.

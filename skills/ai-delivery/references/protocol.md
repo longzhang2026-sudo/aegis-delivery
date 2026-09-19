@@ -54,14 +54,17 @@ Fast Verify 例外必须**同时**满足：LOW 风险；不改可执行逻辑、
 
 产物标识不能只写 HEAD：未提交时需附包含已跟踪变更、未跟踪新增及删除文件的清单和 Diff/校验值。不能把 `git diff` 没包含的新增文件当作已记录。报告不要包含密钥、客户完整资料或敏感生产日志。
 
+AC 的 `type`、当前 `applicability` 与 `verdict` 分开记录，详细机器字段见 [Task Record schema](task-record-schema.md)。
+
 | 结论 | 含义 |
 | --- | --- |
 | PASS | 已执行且满足预期，证据对当前产物有效 |
 | FAIL | 已执行，实际结果不满足预期 |
 | NOT_VERIFIED | 尚无有效执行证据，包括跳过 Required |
 | BLOCKED | 环境、权限或依赖等使必要动作无法继续 |
+| N/A | 执行该 AC 前已有依据确认本任务实例不适用；记录理由和依据，不是失败后的豁免 |
 
-执行前有依据确认不适用，才能记录 N/A + 理由；N/A 是适用性说明，不是失败后的豁免。Optional 跳过不否定必要项。相关代码、配置、数据、测试或 AC 语义变化后，受影响旧结论待复核；原始证据足够则重新判定，不足则补测。
+适用的 Required 必须 PASS。Required 若在该 AC 执行前有依据确认不适用，可以记录 `NOT_APPLICABLE + N/A`；条件未知不能自行标不适用。Conditional 的触发状态必须与适用性一致，触发后按 Required 验收。Optional 跳过不否定必要项，但其 FAIL、BLOCKED 或 NOT_VERIFIED 仍需披露。相关代码、配置、数据、测试或 AC 语义变化后，受影响旧结论待复核；原始证据足够则重新判定，不足则补测。
 
 按任务选必要检查：UI 需要真实操作、边界输入和错误提示；业务逻辑检查分支、数量/金额、幂等与旧行为；数据变更检查隔离环境、事务回滚和兼容；权限/跨层链路检查合法与越权身份、完整路径和数据范围。构建通过本身不能证明全部行为正确。
 
@@ -83,7 +86,7 @@ Human Gate 四类：H1 关键业务语义不清；H2 改变已确认范围、兼
 
 ## 7. 一份任务记录与时间
 
-记录 Contract、Graph、Impact、Evidence、Delivery、Knowledge Sync；Loop/Exception 只在失败、阻塞、Replan、Reset 时追加。不为格式预建无用文档或反复填写空 N/A。
+记录 Contract、Graph、Impact、Evidence、Delivery、Knowledge Sync；Loop/Exception 只在失败、阻塞、Replan、Reset 时追加。不为格式预建无用文档或反复填写空 N/A。v0.2.0 的任务 Markdown 内含一个版本化 JSON 机器区，作为状态、计数和 Evidence 引用的机械来源；正文保存判断依据与可复现细节，不建立第二套数据库。
 
 有效执行时间 T 从 Contract 确认后的首个分析动作起，到 Delivery 和必需 Knowledge Sync 完成止。包含分析、实现、自检、Verify、修复、交付整理和必需知识更新；不包含 Human Gate/BLOCKED 等待与用户主动暂停。使用粗粒度执行片段即可；记录实际起止和累计，不伪造精确计时。
 
@@ -101,7 +104,7 @@ API、Schema、模块依赖、核心业务规则、状态机、关键调用链/M
 
 同步结论为“已更新并回读”“已查无增量并记录理由”或“同步失败”。无增量不重复改正文/日期。同步失败可交候选，但完成同步或正式调整 Contract 后才能 DONE。
 
-DONE 必须同时满足：全部 Required 和已激活 Conditional 通过且证据有效；交付可复现；知识已更新/无增量；没有必要 BLOCKED；要求客户确认时已经确认。
+DONE 必须同时满足：全部适用 Required 和已激活 Conditional 通过且证据有效；执行前有依据确认不适用的 Required 可按第 5 节记录 N/A；交付可复现；知识已更新/无增量；没有必要 BLOCKED；要求客户确认时已经确认。
 
 ## 9. 本包的显式实现约定
 
@@ -111,7 +114,7 @@ DONE 必须同时满足：全部 Required 和已激活 Conditional 通过且证�
 - Conditional 在执行前写触发条件；触发后等同 Required，未触发写理由，未知不能当未触发。
 - 一次正式“修复 + 重新 Verify”作为一个修复周期，在开始前预占任务计数；涉及的每个根因分别 +1。最后一次获准修复包含其重新验证，但仍受 T 限制。额度只阻止下一次修复，不阻止当前授权周期的验证；T 耗尽须停止新动作并记录未完成检查。本地自检不算正式 Loop，但计入 T。
 - `.ai-workflow/project.json` 是项目默认值，任务 Markdown 是该任务事实来源；不同时维护第二套运行状态数据库。
-- `check` 只证明安装文件和配置结构，不能检查 AC 完成、独立性、修复上限或项目能运行。这些由 Agent 和使用者依据任务记录执行。
+- `check` 只证明安装文件和项目配置结构；`validate-task` 只检查当前任务记录的 schema、状态组合、额度和 Evidence 引用。两者都不能证明业务正确、独立验证真实发生、历史未被篡改或项目能运行。
 
 ## 10. 首轮试点
 

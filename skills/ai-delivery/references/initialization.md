@@ -14,7 +14,7 @@
 告诉 Codex 工作流仓库的位置与目标项目目录，让它按本页完成以下步骤。仓库根目录的 START.md 提供可复制提示。
 
 1. **只读检查**：确认目标目录、现有规则、Git 工作区状态（有 Git 时）、README/构建入口和现有任务/知识位置。不要读取 `.env`、凭据或不相关目录。
-2. **安装**：运行下面的 inspect、init、check。初始化只写目标项目，不改用户全局 Codex 设置。脚本默认总修复 4 次、有效执行时间 120 分钟；向使用者报告采用值，已明确的用户值优先。
+2. **安装**：运行下面的 inspect、init、check。inspect 只读扫描根目录下最多两层模块，不跟随链接，只输出候选线索并保持 `runtime_verified: false`。初始化只写目标项目，不改用户全局 Codex 设置。脚本默认总修复 4 次、有效执行时间 120 分钟；向使用者报告采用值，已明确的用户值优先。
 3. **补齐项目映射**：从实际配置识别 build/test/run 命令、必要环境、知识路径，写入 `.ai-workflow/project.json`。不要凭技术栈猜测一个命令就当它可用；尚未执行标候选。
 4. **真实基线检查**：执行任务所需、在授权范围内的安全检查。安装依赖也可能运行第三方脚本，先检查项目约定；不得借初始化重置数据库、支付、发布或写生产数据。
 5. **交付初始化报告**：在项目记录位置写一份报告，列文件变更、已执行命令/退出码/原始输出位置、缺失条件、采用限额、Skill 可见性与下一步。无现有位置可用 `.ai-workflow/initialization.md`。回读文件。
@@ -75,7 +75,7 @@ your-project/
 | READY（由 Agent 报告） | 静态检查通过，必要项目运行入口已实际检查，证据在初始化报告中；作用域仅该项目基线 |
 | BLOCKED | 脚本出错，或必要环境/权限/依赖尚未满足；必须写原因和恢复步骤 |
 
-命令成功退出码 0，错误退出码 2，JSON 错误写 stderr。`CONFIGURED` 始终返回 `runtime_verified: false`，不能改名为交付完成。
+普通命令成功退出码 0，错误退出码 2，JSON 错误写 stderr。`CONFIGURED` 始终返回 `runtime_verified: false`，不能改名为交付完成。`project.json` 会完整校验版本、默认额度、命令项、知识路径和基线枚举；未知扩展字段保留，合法旧版本配置不要求 `package_version` 与当前安装器相同。
 
 ## 重复执行、冲突与升级
 
@@ -85,7 +85,9 @@ your-project/
 
 目标管理路径中的符号链接/Windows junction 会被拒绝。显式指定的项目根目录先解析为实际目录；确认你确实要写该目录。脚本不支持以链接路径绕过规则，不修改全局环境。
 
-升级时先对比新旧 Skill 和协议变更，备份本项目安装目录、入口块和配置，再由使用者/Codex 合并；不提供强制覆盖开关。重新安装前只移走确认属于本包的旧 Skill 和 install.json，保留项目配置、任务与知识。初版不自动升级或自动卸载。
+升级时先对比新旧 Skill 和协议变更，备份本项目安装目录、入口块和配置，再由使用者/Codex 合并；不提供强制覆盖开关。重新安装前只移走确认属于本包的旧 Skill 和 install.json，保留项目配置、任务与知识。v0.2.0 不自动升级或自动卸载。
+
+v0.1 任务没有 Task Record schema v1 机器区，仍可按 V1.6 人工使用，但 `validate-task` 会返回 `TASK_METADATA_MISSING`。需要 Guard 时先备份，再按 [迁移说明](task-record-schema.md#旧任务) 人工补齐；迁移不得补造 PASS 或 Evidence。
 
 卸载时删除经确认未被其他工作引用的 `.agents/skills/ai-delivery`、仅移除 AGENTS.md 中本包 `ai-delivery:start/end` 块；保留其他规则。`.ai-workflow` 含任务证据，不默认删除。移除入口与 Skill 后不要再运行该项目的 check。
 
@@ -99,6 +101,8 @@ Agent Skills 兼容工具可读取同一个 SKILL.md；每个工具的发现目�
 
 - **找不到 `$ai-delivery`**：确认是完整 Skill 目录，且打开的是目标项目；刷新 Skill 列表或重新打开项目任务。也可明确要求读取 `.agents/skills/ai-delivery/SKILL.md`。入口能被读取与列表发现分开检查。
 - **check 失败**：读取 JSON 错误，核对缺失或被修改文件。不要删掉证据或重写哈希来伪装通过。
+- **validate-task 有 WARN**：合法 DRAFT 可以继续补齐；交付前按 issue 的字段路径处理。
+- **validate-task 有 ERROR**：修正结构或真实状态；旧任务按迁移说明处理。命令不会自动修改文件。
 - **项目无法构建**：保存实际失败报告，标 BLOCKED；先确认是原有基线、依赖或本次变更问题。不得报 READY。
 - **没有独立 Agent 工具**：在另一个 Codex 任务进行 Verifier 交接，不假冒独立上下文。
 - **仓库有自定义 AGENTS**：原内容保留。对真正冲突的业务或权限规则做必要决策，不以本 Skill 覆盖它们。

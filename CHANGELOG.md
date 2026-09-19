@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 — 2026-09-19
+
+- 增加根目录 portable Agent Plugin 清单，保留 `.codex-plugin/plugin.json` 兼容入口。
+- 将 Skill 设为 `$ai-delivery` 显式调用，避免普通对话误触发完整交付流程。
+- 完整校验项目配置的版本、预算、命令、知识路径和基线字段，同时保留未知扩展字段。
+- 增加 Task Record schema v1 与只读 `validate-task`，确定性检查 AC 适用性、N/A、Evidence、DONE 和额度组合。
+- 明确执行前有依据确认不适用的 Required AC 可以 N/A；失败后不能豁免。
+- 将 `inspect` 扩展为不跟随链接、固定深度 2、稳定排序的项目线索扫描。
+- 保持 Python 标准库、单脚本、一份项目配置和一份任务记录；没有新增服务或运行时依赖。
+
 ## 0.1.0 — 2026-09-18
 
 - 首次开源 Long 的轻量 AI 软件交付协议 V1.6 实现。

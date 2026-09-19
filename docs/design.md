@@ -17,7 +17,7 @@ Long 的《轻量级 AI 软件开发标准化工作流 V1.6》，2026-09-18，11
 | 治理与最小载体 / 10 | 项目入口、配置与文档复用原则 |
 | 三类试点 / 11 | testing.md 与协议第 10 节 |
 
-安装状态、默认 4 次/120 分钟、Conditional 适用性与修复周期计数是本包明确的实现约定，见 [协议第 9 节](../skills/ai-delivery/references/protocol.md)。不会把这些默认值冒充原文固定要求。
+安装状态、默认 4 次/120 分钟、Conditional 结构化触发与修复周期计数是本包明确的实现约定，见 [协议第 9 节](../skills/ai-delivery/references/protocol.md)。AC 类型、适用性与 verdict 的分离用于准确执行原文 Required N/A 语义，不会把包默认值冒充原文固定要求。
 
 ## 参考的专业 Skill 组织方式
 
@@ -25,15 +25,15 @@ Long 的《轻量级 AI 软件开发标准化工作流 V1.6》，2026-09-18，11
 
 - [Agent Skills specification](https://agentskills.io/specification)：SKILL.md 的 name/description、可选资源和渐进加载。
 - [OpenAI Build skills](https://developers.openai.com/zh-Hans/docs/build-skills)：项目 `.agents/skills`、显式/隐式调用，以及按需读取资源。
-- [OpenAI plugins](https://github.com/openai/plugins)：插件根清单与 skills 目录分发结构。
+- [OpenAI plugin packaging](https://developers.openai.com/zh-Hans/plugins/build/plugins)：portable 根清单、固定 `skills/` 发现与 Codex 兼容清单回退。
 - [OpenAI skills](https://github.com/openai/skills)：该仓库 README 已提示迁移至 plugins，作为历史结构参考，不依赖其旧安装路径。
 - [Anthropic skills](https://github.com/anthropics/skills)：自包含 Skill、脚本/参考材料/资产分离、示例说明。其各目录许可不同；本项目没有直接引入这些文件。
 
 ## 为什么只实现一个小脚本
 
-工作流本身用可读规则、一个项目配置和一份任务记录即可运行。脚本只做容易误操作且可确定检查的文件安装、完整性检查和任务模板生成。源码搜索、代码实现、真实验证和交付由 Codex 利用项目现有工具执行。
+工作流本身用可读规则、一个项目配置和一份任务记录即可运行。脚本只做容易误操作且可确定检查的文件安装、完整性检查、有限项目扫描、任务模板生成和任务记录一致性校验。源码追踪、代码实现、真实验证和交付由 Codex 利用项目现有工具执行。
 
-没有硬编码模型、云服务、数据库、收费供应商或个人目录。没有后台服务、状态数据库、计时守护进程、自动并发 Agent，也没有把文档规则包装成安全隔离机制。只有真实试点暴露重复痛点后才扩展。
+Task Record schema v1 位于原 Markdown 内，不增加状态数据库。Guard 只检查当前文件自洽，不能证明 Evidence 真实、历史未被改写或 Verifier 独立。没有硬编码模型、云服务、数据库、收费供应商或个人目录。没有后台服务、计时守护进程、自动并发 Agent，也没有把文档规则包装成安全隔离机制。只有真实试点暴露重复痛点后才扩展。
 
 ## 版本和维护
 
