@@ -1,26 +1,26 @@
 # 从这里开始
 
-你需要两个位置：**本工作流仓库**与**要接入的业务项目**。不要把工作流源码仓库误当业务项目初始化。已经在目标项目中的 `.agents/skills/ai-delivery` 可直接使用，不必再次克隆。
+你需要两个位置：**本工作流仓库**与**要接入的业务项目**。不要把工作流源码仓库误当业务项目初始化。已经在目标项目中的 `.agents/skills/aegis-delivery` 可直接使用，不必再次克隆。
 
 ## 交给 Codex 的完整指令
 
 复制以下内容，替换两个路径；若当前任务已经打开目标项目，可把目标项目写为“当前项目”。
 
 ```text
-工作流仓库：<下载解压或克隆后的 ai-delivery-workflow 目录>
+工作流仓库：<下载解压或克隆后的 aegis-delivery 目录>
 目标项目：<要接入工作流的项目目录>
 
-请按此仓库 skills/ai-delivery/references/initialization.md 初始化目标项目：
+请按此仓库 skills/aegis-delivery/references/initialization.md 初始化目标项目：
 1. 先读目标项目适用的 AGENTS.md、README 和实际构建配置。
 2. 确认解释器可用；运行 inspect，再运行 init、check。inspect 只提供深度 2 的候选线索，不把命令标成已验证。
 3. 在项目配置中登记实际 build/test/run 入口、知识文档路径和必要环境。
 4. 执行授权范围内的必要基线检查，保留命令、实际结果及原始报告。
 5. 输出并回读初始化报告：已写文件、默认上限、检查状态、缺失条件、首次用法。
 
-首次任务请显式调用 `$ai-delivery`。创建任务记录后，在交付和恢复前运行：
+首次任务请显式调用 `$aegis-delivery`。创建任务记录后，在交付和恢复前运行：
 
 ```text
-python .agents/skills/ai-delivery/scripts/workflow.py validate-task --project . --id <任务ID>
+python .agents/skills/aegis-delivery/scripts/workflow.py validate-task --project . --id <任务ID>
 ```
 
 WARN 可以保留在 DRAFT；ERROR 必须修正或进入相应 BLOCKED/Human Gate。该命令只检查记录自洽，不执行项目测试。
@@ -39,4 +39,4 @@ WARN 可以保留在 DRAFT；ERROR 必须修正或进入相应 BLOCKED/Human Gat
 - 当前采用的默认限额；用户怎么改变后续任务的 Contract。
 - 首个小任务的启动提示，以及标准路径的独立验证交接方法。
 
-如果仓库刚下载到本地，可先运行 `python -m unittest discover -s tests -v` 检查包本身，然后接入业务项目。详细系统命令、更新/卸载及常见问题在 [初始化指南](skills/ai-delivery/references/initialization.md)。
+如果仓库刚下载到本地，可先运行 `python -m unittest discover -s tests -v` 检查包本身，然后接入业务项目。详细系统命令、更新/卸载及常见问题在 [初始化指南](skills/aegis-delivery/references/initialization.md)。

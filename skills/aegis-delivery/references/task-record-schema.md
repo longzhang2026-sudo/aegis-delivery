@@ -7,11 +7,11 @@
 机器区必须在文件中出现一次，使用以下边界；中间是一个 `json` fenced block：
 
 ````markdown
-<!-- ai-delivery-record:start -->
+<!-- aegis-delivery-record:start -->
 ```json
 {"record_schema_version": 1}
 ```
-<!-- ai-delivery-record:end -->
+<!-- aegis-delivery-record:end -->
 ````
 
 JSON 是状态、枚举、计数和 Evidence 引用的机械权威。正文不要重复维护另一套任务状态、额度或 verdict。未知扩展字段会被保留并忽略。
@@ -90,7 +90,7 @@ DONE 还要求：当前产物和三个 Delivery 引用非空；知识同步为 `
 ## 命令、退出码与错误
 
 ```bash
-python .agents/skills/ai-delivery/scripts/workflow.py validate-task --project . --id TASK-001
+python .agents/skills/aegis-delivery/scripts/workflow.py validate-task --project . --id TASK-001
 ```
 
 输出为稳定 JSON：`valid`、`status`、`issues`。issue 含 `level`、`code`、`path`、`message`，按 `path + code + level` 排序。只有 ERROR 时退出 `2`；无 ERROR，包括只有 WARN，退出 `0`。命令只读。

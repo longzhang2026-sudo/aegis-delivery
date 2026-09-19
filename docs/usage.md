@@ -1,13 +1,13 @@
 # 使用手册：从需求到交付
 
-先按 [初始化指南](../skills/ai-delivery/references/initialization.md) 接入项目。本文中的路径相对业务项目根目录；TASK-001 只是示例 ID。所有示例结果均待实际执行。
+先按 [初始化指南](../skills/aegis-delivery/references/initialization.md) 接入项目。本文中的路径相对业务项目根目录；TASK-001 只是示例 ID。所有示例结果均待实际执行。
 
 ## 1. 启动一个任务
 
 在目标项目的 Codex 任务中输入：
 
 ```text
-$ai-delivery
+$aegis-delivery
 任务：<问题或希望实现的一个功能切片>
 当前行为：<真实情况与复现输入>
 期望行为：<可观察结果>
@@ -19,10 +19,10 @@ $ai-delivery
 也可以先创建记录（在目标项目根目录运行）：
 
 ```bash
-python .agents/skills/ai-delivery/scripts/workflow.py new-task --project . --id TASK-001 --title "修复筛选分页联动"
+python .agents/skills/aegis-delivery/scripts/workflow.py new-task --project . --id TASK-001 --title "修复筛选分页联动"
 ```
 
-生成 `.ai-workflow/tasks/TASK-001.md`。同 ID 已存在时拒绝覆盖；恢复用原记录，不新建副本。新模板在同一文件内包含 Task Record schema v1 JSON 机器区和人读正文。机器区是状态、计数和 Evidence 引用的机械来源，详细规则见 [Task Record schema](../skills/ai-delivery/references/task-record-schema.md)。
+生成 `.ai-workflow/tasks/TASK-001.md`。同 ID 已存在时拒绝覆盖；恢复用原记录，不新建副本。新模板在同一文件内包含 Task Record schema v1 JSON 机器区和人读正文。机器区是状态、计数和 Evidence 引用的机械来源，详细规则见 [Task Record schema](../skills/aegis-delivery/references/task-record-schema.md)。
 
 ## 2. 把“完成”变成可观察的验收
 
@@ -52,7 +52,7 @@ Builder 自检完成后可运行 `validate-task` 检查当前记录。WARN 表�
 有经过授权的独立上下文能力时按宿主方式使用。没有时，由使用者在同一项目打开新的 Codex 任务，粘贴：
 
 ```text
-$ai-delivery
+$aegis-delivery
 独立验证 .ai-workflow/tasks/TASK-001.md。
 先仅阅读 Contract / AC / Impact，写下黑盒场景和预期；
 完成 Phase A 后再读实现与 Diff，补充实现特有风险并实际执行检查。
@@ -63,7 +63,7 @@ $ai-delivery
 
 两个上下文不要同时修改同一份记录：交接后暂停 Builder 写入，Verifier 完成后再交还；不需要为首次使用建设并发系统。
 
-不能获得独立验证时，可以交付候选和缺口说明，标准任务不能声明已独立 PASS。LOW 例外须逐项符合 [协议白名单](../skills/ai-delivery/references/protocol.md)，不能由风险标签自动获得。
+不能获得独立验证时，可以交付候选和缺口说明，标准任务不能声明已独立 PASS。LOW 例外须逐项符合 [协议白名单](../skills/aegis-delivery/references/protocol.md)，不能由风险标签自动获得。
 
 ## 5. 失败、阻塞与继续
 
@@ -82,7 +82,7 @@ Loop / Exception
 恢复提示：
 
 ```text
-$ai-delivery
+$aegis-delivery
 继续 .ai-workflow/tasks/TASK-001.md。
 先复核原 Contract、当前产物、Evidence 的有效性与累计额度；
 恢复条件是：<已补充的条件/决策>。
@@ -105,7 +105,7 @@ $ai-delivery
 标记 DONE 前运行：
 
 ```bash
-python .agents/skills/ai-delivery/scripts/workflow.py validate-task --project . --id TASK-001
+python .agents/skills/aegis-delivery/scripts/workflow.py validate-task --project . --id TASK-001
 ```
 
 只有无 ERROR 才能继续由负责人依据真实证据关闭任务。产物不一致 WARN 必须先复核 Evidence；Guard 成功本身不能作为业务 PASS。
@@ -114,4 +114,4 @@ python .agents/skills/ai-delivery/scripts/workflow.py validate-task --project . 
 
 建议把不含敏感信息的 Skill、AGENTS 入口、项目配置和任务记录纳入业务项目版本控制。不要提交密钥、完整客户数据、大量敏感原始日志；报告采用必要脱敏信息和可控存储位置。
 
-先走一个 Bug，再做一个功能切片，最后做必要跨模块变更。按 [协议的六项指标](../skills/ai-delivery/references/protocol.md) 记录实际成本与缺口。反复出现的同类问题才增加工具机制，避免一次性构建重型平台。
+先走一个 Bug，再做一个功能切片，最后做必要跨模块变更。按 [协议的六项指标](../skills/aegis-delivery/references/protocol.md) 记录实际成本与缺口。反复出现的同类问题才增加工具机制，避免一次性构建重型平台。

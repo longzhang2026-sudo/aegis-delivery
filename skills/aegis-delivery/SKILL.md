@@ -1,10 +1,10 @@
 ---
-name: ai-delivery
+name: aegis-delivery
 description: "Lightweight software delivery with a task contract, impact analysis, independent verification, bounded repair, and reproducible handoff. Use when the user asks to initialize this workflow, deliver a software task with acceptance evidence, independently verify a delivery, or resume a recorded task; also for 轻量研发工作流、初始化交付流程、按验收交付、独立验收、恢复任务. Do not impose it on simple questions or one-line edits unless requested."
 license: MIT
 ---
 
-# AI Delivery
+# Aegis Delivery
 
 按 V1.6 将需求推进为可复现的交付。保持现有技术栈和运行入口；每个任务只维护一份记录。Skill 是执行指导，不是后台调度器、硬权限隔离或自动验收保证。
 

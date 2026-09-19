@@ -11,7 +11,7 @@ import tempfile
 import unittest
 
 REPO = Path(__file__).resolve().parents[1]
-SCRIPT = REPO / "skills/ai-delivery/scripts/workflow.py"
+SCRIPT = REPO / "skills/aegis-delivery/scripts/workflow.py"
 spec = importlib.util.spec_from_file_location("workflow", SCRIPT)
 workflow = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(workflow)
@@ -216,6 +216,14 @@ class WorkflowChecks(unittest.TestCase):
             self.assertEqual(json.loads(process.stdout)["issues"][0]["code"], "TASK_METADATA_MISSING")
             self.assertEqual(task.read_bytes(), before)
 
+            current = root / ".ai-workflow/tasks/LEGACY-2.md"
+            workflow.new_task(root, "LEGACY-2", "旧名称记录")
+            legacy_text = current.read_text(encoding="utf-8").replace(
+                workflow.RECORD_START, workflow.LEGACY_RECORD_START
+            ).replace(workflow.RECORD_END, workflow.LEGACY_RECORD_END)
+            current.write_text(legacy_text, encoding="utf-8", newline="\n")
+            self.assertTrue(workflow.validate_task(root, "LEGACY-2")["valid"])
+
     def test_inspect_depth_sorting_exclusions_and_links(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -257,6 +265,14 @@ class WorkflowChecks(unittest.TestCase):
             self.assertFalse((root / "AGENTS.md").exists())
             self.assertFalse((root / workflow.PROFILE).exists())
             self.assertEqual(conflict.read_text(encoding="utf-8"), "existing custom skill")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            legacy = root / workflow.LEGACY_INSTALL
+            legacy.mkdir(parents=True)
+            with self.assertRaisesRegex(ValueError, "rename migration guide"):
+                workflow.initialize(root, 4, 120)
+            self.assertFalse((root / "AGENTS.md").exists())
+            self.assertFalse((root / workflow.PROFILE).exists())
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             workflow.initialize(root, 4, 120)
@@ -317,7 +333,7 @@ class WorkflowChecks(unittest.TestCase):
         self.assertEqual(portable["version"], workflow.VERSION)
         self.assertTrue((REPO / compatibility["skills"]).is_dir())
         skill = (workflow.SKILL / "SKILL.md").read_text(encoding="utf-8")
-        self.assertTrue(skill.startswith("---\nname: ai-delivery\n"))
+        self.assertTrue(skill.startswith("---\nname: aegis-delivery\n"))
         self.assertIn("description:", skill.split("---", 2)[1])
         openai_yaml = (workflow.SKILL / "agents/openai.yaml").read_text(encoding="utf-8")
         self.assertIn("allow_implicit_invocation: false", openai_yaml)

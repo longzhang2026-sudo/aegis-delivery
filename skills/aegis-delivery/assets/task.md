@@ -1,6 +1,6 @@
 # {{TASK_ID}} · {{TITLE}}
 
-<!-- ai-delivery-record:start -->
+<!-- aegis-delivery-record:start -->
 ```json
 {
   "record_schema_version": 1,
@@ -54,9 +54,9 @@
   "evidence_batches": []
 }
 ```
-<!-- ai-delivery-record:end -->
+<!-- aegis-delivery-record:end -->
 
-机器区是状态、计数和 Evidence 引用的唯一机械来源。字段与合法组合见项目内 `.agents/skills/ai-delivery/references/task-record-schema.md`。正文记录判断依据与可复现细节，不重复维护另一套状态。
+机器区是状态、计数和 Evidence 引用的唯一机械来源。字段与合法组合见项目内 `.agents/skills/aegis-delivery/references/task-record-schema.md`。正文记录判断依据与可复现细节，不重复维护另一套状态。
 
 ## Contract
 

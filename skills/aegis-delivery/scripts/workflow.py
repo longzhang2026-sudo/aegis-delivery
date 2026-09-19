@@ -15,17 +15,23 @@ import tempfile
 
 VERSION = "0.2.0"
 SKILL = Path(__file__).resolve().parents[1]
-INSTALL = ".agents/skills/ai-delivery"
+INSTALL = ".agents/skills/aegis-delivery"
+LEGACY_INSTALL = ".agents/skills/ai-delivery"
 PROFILE = ".ai-workflow/project.json"
 RECEIPT = ".ai-workflow/install.json"
-START = "<!-- ai-delivery:start -->"
-END = "<!-- ai-delivery:end -->"
-RECORD_START = "<!-- ai-delivery-record:start -->"
-RECORD_END = "<!-- ai-delivery-record:end -->"
+START = "<!-- aegis-delivery:start -->"
+END = "<!-- aegis-delivery:end -->"
+RECORD_START = "<!-- aegis-delivery-record:start -->"
+RECORD_END = "<!-- aegis-delivery-record:end -->"
+LEGACY_START = "<!-- ai-delivery:start -->"
+LEGACY_END = "<!-- ai-delivery:end -->"
+LEGACY_RECORD_START = "<!-- ai-delivery-record:start -->"
+LEGACY_RECORD_END = "<!-- ai-delivery-record:end -->"
+RECORD_MARKERS = ((RECORD_START, RECORD_END), (LEGACY_RECORD_START, LEGACY_RECORD_END))
 BLOCK = f"""{START}
-## AI Delivery workflow
+## Aegis Delivery workflow
 For requested software delivery, initialization, verification or task recovery,
-read `.agents/skills/ai-delivery/SKILL.md` and `.ai-workflow/project.json`.
+read `.agents/skills/aegis-delivery/SKILL.md` and `.ai-workflow/project.json`.
 Keep one task record. Actual evidence is required for acceptance; installation
 checks do not prove application correctness. Preserve existing project rules.
 {END}"""
@@ -147,6 +153,8 @@ def agents_content(root: Path) -> bytes:
     path = managed(root, "AGENTS.md")
     raw = path.read_bytes() if path.exists() else b""
     text = raw.decode("utf-8-sig")
+    if LEGACY_START in text or LEGACY_END in text:
+        raise ValueError("Legacy ai-delivery AGENTS.md block detected; follow the rename migration guide")
     if START in text or END in text:
         if text.count(START) != 1 or text.count(END) != 1:
             raise ValueError("Conflicting AGENTS.md managed markers; review manually")
@@ -196,6 +204,8 @@ def inspect(root: Path) -> dict:
 def initialize(root: Path, repairs: int, minutes: int) -> dict:
     if not integer(repairs, 1) or not integer(minutes, 1):
         raise ValueError("Budgets must be positive integers")
+    if managed(root, LEGACY_INSTALL).exists():
+        raise ValueError("Legacy ai-delivery installation detected; follow the rename migration guide")
     source = skill_files()
     planned = {f"{INSTALL}/{name}": content for name, content in source.items()}
     config = {"schema_version": 1, "protocol": "1.6", "package_version": VERSION,
@@ -305,10 +315,19 @@ def new_task(root: Path, task_id: str, title: str) -> dict:
 
 
 def extract_task_record(text: str) -> dict:
-    if text.count(RECORD_START) != 1 or text.count(RECORD_END) != 1:
+    markers = []
+    for start_marker, end_marker in RECORD_MARKERS:
+        start_count, end_count = text.count(start_marker), text.count(end_marker)
+        if start_count == end_count == 0:
+            continue
+        if start_count != 1 or end_count != 1:
+            raise ValueError("Task record must contain exactly one machine block")
+        markers.append((start_marker, end_marker))
+    if len(markers) != 1:
         raise ValueError("Task record must contain exactly one machine block")
-    start = text.index(RECORD_START) + len(RECORD_START)
-    end = text.index(RECORD_END, start)
+    start_marker, end_marker = markers[0]
+    start = text.index(start_marker) + len(start_marker)
+    end = text.index(end_marker, start)
     block = text[start:end].strip()
     lines = block.splitlines()
     if len(lines) < 3 or lines[0].strip() != "```json" or lines[-1].strip() != "```":
@@ -588,7 +607,7 @@ def validate_task(root: Path, task_id: str) -> dict:
     if not path.is_file():
         raise ValueError(f"Task file not found: {path}")
     text = path.read_text(encoding="utf-8")
-    if RECORD_START not in text and RECORD_END not in text:
+    if not any(marker in text for pair in RECORD_MARKERS for marker in pair):
         return {"valid": False, "status": None, "issues": [{
             "level": "ERROR", "code": "TASK_METADATA_MISSING", "path": "$",
             "message": "Legacy task has no schema v1 machine block; migrate it manually without inventing evidence",

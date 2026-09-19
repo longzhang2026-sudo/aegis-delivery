@@ -2,7 +2,7 @@
 
 **虚构演示，未在真实项目执行。下列场景与命令都是计划，不是 PASS 证据。** 路径和命令需由实际项目填写。
 
-<!-- ai-delivery-record:start -->
+<!-- aegis-delivery-record:start -->
 ```json
 {
   "record_schema_version": 1,
@@ -102,7 +102,7 @@
   "evidence_batches": []
 }
 ```
-<!-- ai-delivery-record:end -->
+<!-- aegis-delivery-record:end -->
 
 机器区是演示任务的机械状态来源。AC-04 尚未判断触发条件，因此 Guard 应给 WARN；它不能被当作未触发或 N/A。
 

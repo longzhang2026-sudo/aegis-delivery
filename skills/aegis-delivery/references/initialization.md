@@ -18,7 +18,7 @@
 3. **补齐项目映射**：从实际配置识别 build/test/run 命令、必要环境、知识路径，写入 `.ai-workflow/project.json`。不要凭技术栈猜测一个命令就当它可用；尚未执行标候选。
 4. **真实基线检查**：执行任务所需、在授权范围内的安全检查。安装依赖也可能运行第三方脚本，先检查项目约定；不得借初始化重置数据库、支付、发布或写生产数据。
 5. **交付初始化报告**：在项目记录位置写一份报告，列文件变更、已执行命令/退出码/原始输出位置、缺失条件、采用限额、Skill 可见性与下一步。无现有位置可用 `.ai-workflow/initialization.md`。回读文件。
-6. **首个试点**：在新 Codex 任务打开目标项目，显式调用 `$ai-delivery`，选一个可复现小 Bug。基线通过也不能代替此试点的交付验收。
+6. **首个试点**：在新 Codex 任务打开目标项目，显式调用 `$aegis-delivery`，选一个可复现小 Bug。基线通过也不能代替此试点的交付验收。
 
 ## 手工命令
 
@@ -27,17 +27,17 @@
 Windows PowerShell：
 
 ```powershell
-python .\skills\ai-delivery\scripts\workflow.py inspect --project "D:\work\your-project"
-python .\skills\ai-delivery\scripts\workflow.py init --project "D:\work\your-project" --max-repairs 4 --time-limit-minutes 120
-python .\skills\ai-delivery\scripts\workflow.py check --project "D:\work\your-project"
+python .\skills\aegis-delivery\scripts\workflow.py inspect --project "D:\work\your-project"
+python .\skills\aegis-delivery\scripts\workflow.py init --project "D:\work\your-project" --max-repairs 4 --time-limit-minutes 120
+python .\skills\aegis-delivery\scripts\workflow.py check --project "D:\work\your-project"
 ```
 
 macOS / Linux：
 
 ```bash
-python3 skills/ai-delivery/scripts/workflow.py inspect --project "$HOME/work/your-project"
-python3 skills/ai-delivery/scripts/workflow.py init --project "$HOME/work/your-project" --max-repairs 4 --time-limit-minutes 120
-python3 skills/ai-delivery/scripts/workflow.py check --project "$HOME/work/your-project"
+python3 skills/aegis-delivery/scripts/workflow.py inspect --project "$HOME/work/your-project"
+python3 skills/aegis-delivery/scripts/workflow.py init --project "$HOME/work/your-project" --max-repairs 4 --time-limit-minutes 120
+python3 skills/aegis-delivery/scripts/workflow.py check --project "$HOME/work/your-project"
 ```
 
 如果 Windows 上 `python` 不可用，使用已安装的 `py -3` 或 Python 解释器完整路径。Codex 自带运行时可由 Codex 查询使用；普通使用者不依赖作者电脑中的运行时位置。
@@ -47,7 +47,7 @@ python3 skills/ai-delivery/scripts/workflow.py check --project "$HOME/work/your-
 ```text
 your-project/
 ├── AGENTS.md                         # 追加有边界标记的入口，保留既有内容
-├── .agents/skills/ai-delivery/        # 独立 Skill 全部资源
+├── .agents/skills/aegis-delivery/        # 独立 Skill 全部资源
 └── .ai-workflow/
     ├── project.json                  # 项目默认限额、命令、知识位置
     ├── install.json                  # 安装文件 SHA-256，用于完整性检查
@@ -87,19 +87,30 @@ your-project/
 
 升级时先对比新旧 Skill 和协议变更，备份本项目安装目录、入口块和配置，再由使用者/Codex 合并；不提供强制覆盖开关。重新安装前只移走确认属于本包的旧 Skill 和 install.json，保留项目配置、任务与知识。v0.2.0 不自动升级或自动卸载。
 
+### 从旧名称迁移
+
+早期版本使用 `ai-delivery-workflow`、`$ai-delivery` 和 `.agents/skills/ai-delivery`。初始化器检测到旧安装会停止，不会同时保留两个 Skill。迁移前先备份并确认旧文件确由本包管理，然后：
+
+1. 保留 `.ai-workflow/project.json`、`.ai-workflow/tasks/` 及项目知识文件。
+2. 移走旧 `.agents/skills/ai-delivery` 和 `.ai-workflow/install.json`。
+3. 仅删除 `AGENTS.md` 中 `ai-delivery:start/end` 包围的旧托管块，保留其他规则。
+4. 使用当前仓库重新执行 `init` 和 `check`，再确认 `$aegis-delivery` 可见。
+
+新 Guard 仍可读取旧 `ai-delivery-record:start/end` 机器区，不需要仅为改名重写历史任务。迁移不会把旧 Evidence 自动升级为有效；恢复任务时仍须核对当前产物和证据。
+
 v0.1 任务没有 Task Record schema v1 机器区，仍可按 V1.6 人工使用，但 `validate-task` 会返回 `TASK_METADATA_MISSING`。需要 Guard 时先备份，再按 [迁移说明](task-record-schema.md#旧任务) 人工补齐；迁移不得补造 PASS 或 Evidence。
 
-卸载时删除经确认未被其他工作引用的 `.agents/skills/ai-delivery`、仅移除 AGENTS.md 中本包 `ai-delivery:start/end` 块；保留其他规则。`.ai-workflow` 含任务证据，不默认删除。移除入口与 Skill 后不要再运行该项目的 check。
+卸载时删除经确认未被其他工作引用的 `.agents/skills/aegis-delivery`、仅移除 AGENTS.md 中本包 `aegis-delivery:start/end` 块；保留其他规则。`.ai-workflow` 含任务证据，不默认删除。移除入口与 Skill 后不要再运行该项目的 check。
 
 ## 无 Python 与其他 Agent
 
-可手工复制整个 `skills/ai-delivery` 目录到目标项目 `.agents/skills/ai-delivery`，按 init 输出结构创建项目配置/入口，并声明“手工安装，未运行脚本完整性检查”。缺少运行时不等于必需安装全套 Python 开发环境。
+可手工复制整个 `skills/aegis-delivery` 目录到目标项目 `.agents/skills/aegis-delivery`，按 init 输出结构创建项目配置/入口，并声明“手工安装，未运行脚本完整性检查”。缺少运行时不等于必需安装全套 Python 开发环境。
 
 Agent Skills 兼容工具可读取同一个 SKILL.md；每个工具的发现目录、独立上下文能力和权限机制不同，需按该工具文档接入。首版主要针对 Codex 验证，不宣称所有 Agent 都即装即用。仓库提供 Codex 插件清单供插件分发，但无需安装插件即可使用项目内 Skill。
 
 ## 常见问题
 
-- **找不到 `$ai-delivery`**：确认是完整 Skill 目录，且打开的是目标项目；刷新 Skill 列表或重新打开项目任务。也可明确要求读取 `.agents/skills/ai-delivery/SKILL.md`。入口能被读取与列表发现分开检查。
+- **找不到 `$aegis-delivery`**：确认是完整 Skill 目录，且打开的是目标项目；刷新 Skill 列表或重新打开项目任务。也可明确要求读取 `.agents/skills/aegis-delivery/SKILL.md`。入口能被读取与列表发现分开检查。
 - **check 失败**：读取 JSON 错误，核对缺失或被修改文件。不要删掉证据或重写哈希来伪装通过。
 - **validate-task 有 WARN**：合法 DRAFT 可以继续补齐；交付前按 issue 的字段路径处理。
 - **validate-task 有 ERROR**：修正结构或真实状态；旧任务按迁移说明处理。命令不会自动修改文件。

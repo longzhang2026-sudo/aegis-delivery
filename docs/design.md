@@ -17,7 +17,7 @@ Long 的《轻量级 AI 软件开发标准化工作流 V1.6》，2026-09-18，11
 | 治理与最小载体 / 10 | 项目入口、配置与文档复用原则 |
 | 三类试点 / 11 | testing.md 与协议第 10 节 |
 
-安装状态、默认 4 次/120 分钟、Conditional 结构化触发与修复周期计数是本包明确的实现约定，见 [协议第 9 节](../skills/ai-delivery/references/protocol.md)。AC 类型、适用性与 verdict 的分离用于准确执行原文 Required N/A 语义，不会把包默认值冒充原文固定要求。
+安装状态、默认 4 次/120 分钟、Conditional 结构化触发与修复周期计数是本包明确的实现约定，见 [协议第 9 节](../skills/aegis-delivery/references/protocol.md)。AC 类型、适用性与 verdict 的分离用于准确执行原文 Required N/A 语义，不会把包默认值冒充原文固定要求。
 
 ## 参考的专业 Skill 组织方式
 

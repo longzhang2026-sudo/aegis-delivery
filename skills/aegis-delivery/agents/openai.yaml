@@ -1,0 +1,7 @@
+interface:
+  display_name: "Aegis Delivery · 轻量研发交付"
+  short_description: "用任务契约、独立验证和可追溯证据完成轻量研发闭环，支持初始化与恢复"
+  default_prompt: "使用 $aegis-delivery 检查当前项目的初始化状态，并按 V1.6 流程推进我的开发任务。"
+
+policy:
+  allow_implicit_invocation: false

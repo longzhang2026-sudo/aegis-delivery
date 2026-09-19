@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- 项目、插件与 Skill 从 `ai-delivery-workflow` / `$ai-delivery` 统一更名为 `aegis-delivery` / `$aegis-delivery`。
+- 新安装使用 `.agents/skills/aegis-delivery` 和新托管标记；检测到旧安装时拒绝静默双装并引导人工迁移。
+- `validate-task` 继续读取旧 `ai-delivery-record` 机器区，已有任务记录无需因改名重写。
+
 ## 0.2.0 — 2026-09-19
 
 - 增加根目录 portable Agent Plugin 清单，保留 `.codex-plugin/plugin.json` 兼容入口。

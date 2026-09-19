@@ -1,14 +1,14 @@
-# AI Delivery Workflow
+# Aegis Delivery
 
-[![CI](https://github.com/longzhang2026-sudo/ai-delivery-workflow/actions/workflows/ci.yml/badge.svg)](https://github.com/longzhang2026-sudo/ai-delivery-workflow/actions/workflows/ci.yml)
+[![CI](https://github.com/longzhang2026-sudo/aegis-delivery/actions/workflows/ci.yml/badge.svg)](https://github.com/longzhang2026-sudo/aegis-delivery/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Protocol](https://img.shields.io/badge/protocol-V1.6-0B67C5.svg)](skills/ai-delivery/references/protocol.md)
+[![Protocol](https://img.shields.io/badge/protocol-V1.6-0B67C5.svg)](skills/aegis-delivery/references/protocol.md)
 [![Package](https://img.shields.io/badge/package-v0.2.0-22A76A.svg)](CHANGELOG.md)
 [English](README.en.md)
 
 **把需求交给 Codex，通过任务契约、分阶段验证和可追溯 Evidence，帮助形成可复现的软件交付。**
 
-AI Delivery Workflow 是《轻量级 AI 软件开发标准化工作流 V1.6》的开源实现，以项目内 Codex Skill 的形式接入业务项目。它把 Agent 开发从“完成了一段代码”推进到“范围明确、结论有证据、交付可复现且便于继续维护”。
+Aegis Delivery 是《轻量级 AI 软件开发标准化工作流 V1.6》的开源实现，以项目内 Codex Skill 的形式接入业务项目。它把 Agent 开发从“完成了一段代码”推进到“范围明确、结论有证据、交付可复现且便于继续维护”。
 
 项目采用 Python 标准库和项目本地文件，不要求固定 MCP、Git、Docker 或付费 API。它提供执行规则与确定性记录校验，不是无人值守编排服务，也不构成操作系统级权限隔离。
 
@@ -19,7 +19,7 @@ AI Delivery Workflow 是《轻量级 AI 软件开发标准化工作流 V1.6》�
 | 适用范围 | 新项目的首个可运行纵向切片；存量项目的 Bug、功能切片与必要跨模块改动；本地或测试环境 |
 | 成熟度 | **NOT_YET_PILOTED**：自动化工程检查已建立，真实业务试点尚未完成 |
 
-![AI Delivery Workflow 架构流程图](docs/images/ai-delivery-workflow.png)
+![Aegis Delivery 架构流程图](docs/images/aegis-delivery.png)
 
 主流程以 Contract 固定目标与验收，以 Graph + Impact 约束执行路径和影响面；Builder 负责实现与自检，Verifier 在独立上下文中分 Phase A / Phase B 验收。结论必须引用绑定当前产物、环境和输入的执行 Evidence；流程本身不能保证证据未被伪造。Task Record 保存任务事实，Deterministic Guard 在交付或恢复前检查记录自洽，但两者都不替代业务判断或实际验证。
 
@@ -70,7 +70,7 @@ Verify 未通过时先分类，再返回正确阶段：
 - Markdown 正文保存 Contract、Graph、Impact、判断依据、交付与知识同步说明。
 - AC 将 `type`、`applicability` 和 `verdict` 分开记录，避免把“不适用”与“未验证”混为一谈。
 
-详细字段与 Required N/A 规则见 [Task Record schema v1](skills/ai-delivery/references/task-record-schema.md)。
+详细字段与 Required N/A 规则见 [Task Record schema v1](skills/aegis-delivery/references/task-record-schema.md)。
 
 ### 独立验证
 
@@ -85,14 +85,14 @@ Verify 未通过时先分类，再返回正确阶段：
 `validate-task` 只读检查 Task Record 的 schema、状态组合、额度和 Evidence 引用，不会运行项目 build/test：
 
 ```bash
-python .agents/skills/ai-delivery/scripts/workflow.py validate-task --project . --id TASK-001
+python .agents/skills/aegis-delivery/scripts/workflow.py validate-task --project . --id TASK-001
 ```
 
 合法 DRAFT 缺口产生 WARN 并返回 0；结构矛盾或 DONE 门槛不满足产生 ERROR 并返回 2。Guard 成功只代表记录自洽，不代表业务行为已经正确。
 
 ## Skill / Plugin 能力
 
-下列名称是同一个 `ai-delivery` Skill 内的能力分区，不是七个独立 Skill、Agent 或后台服务：
+下列名称是同一个 `aegis-delivery` Skill 内的能力分区，不是七个独立 Skill、Agent 或后台服务：
 
 | 能力分区 | 作用 |
 | --- | --- |
@@ -104,7 +104,7 @@ python .agents/skills/ai-delivery/scripts/workflow.py validate-task --project . 
 | Evidence Skill | 记录实际证据并绑定 AC 与当前 Artifact；当前不提供自动命令捕获服务 |
 | Knowledge Skill | 把已验证、长期有效的事实同步到现有项目文档 |
 
-仓库同时提供根目录 [`plugin.json`](plugin.json) 和 [`.codex-plugin/plugin.json`](.codex-plugin/plugin.json)。推荐方式仍是把 [`skills/ai-delivery`](skills/ai-delivery) 安装到目标项目；插件清单负责分发与兼容，不会自动获得外部工具权限。
+仓库同时提供根目录 [`plugin.json`](plugin.json) 和 [`.codex-plugin/plugin.json`](.codex-plugin/plugin.json)。推荐方式仍是把 [`skills/aegis-delivery`](skills/aegis-delivery) 安装到目标项目；插件清单负责分发与兼容，不会自动获得外部工具权限。
 
 ## 快速开始
 
@@ -114,7 +114,7 @@ python .agents/skills/ai-delivery/scripts/workflow.py validate-task --project . 
 | --- | --- |
 | 希望 Codex 完成检查、安装和项目基线验证 | 方式一 |
 | 希望自己执行安装命令 | 方式二 |
-| 目标项目已存在 `.agents/skills/ai-delivery` | 跳到[安装后使用](#安装后使用)，无需重复安装 |
+| 目标项目已存在 `.agents/skills/aegis-delivery` | 跳到[安装后使用](#安装后使用)，无需重复安装 |
 
 ### 方式一：交给 Codex
 
@@ -136,11 +136,11 @@ check 成功只能报告 CONFIGURED，基线实际通过后才能报告限定范
 ### 方式二：手动初始化
 
 ```bash
-git clone https://github.com/longzhang2026-sudo/ai-delivery-workflow.git
-cd ai-delivery-workflow
-python skills/ai-delivery/scripts/workflow.py inspect --project "/path/to/project"
-python skills/ai-delivery/scripts/workflow.py init --project "/path/to/project"
-python skills/ai-delivery/scripts/workflow.py check --project "/path/to/project"
+git clone https://github.com/longzhang2026-sudo/aegis-delivery.git
+cd aegis-delivery
+python skills/aegis-delivery/scripts/workflow.py inspect --project "/path/to/project"
+python skills/aegis-delivery/scripts/workflow.py init --project "/path/to/project"
+python skills/aegis-delivery/scripts/workflow.py check --project "/path/to/project"
 ```
 
 以上命令在工作流仓库根目录运行，`/path/to/project` 必须替换为已存在的业务项目目录。Windows 可以使用 `python` 或 `py -3` 和 Windows 路径；macOS/Linux 按安装情况使用 `python3`。Skill 安装和目标项目本身不要求 GitHub 账号或 Git；若不使用 Git 获取本仓库，可下载 ZIP。
@@ -150,25 +150,27 @@ python skills/ai-delivery/scripts/workflow.py check --project "/path/to/project"
 ```text
 your-project/
 ├── AGENTS.md
-├── .agents/skills/ai-delivery/
+├── .agents/skills/aegis-delivery/
 └── .ai-workflow/
     ├── project.json
     ├── install.json
     └── tasks/
 ```
 
-`inspect` 只输出候选线索，不验证命令；`init` 安装项目内文件；`check` 成功只表示静态安装达到 `CONFIGURED`。项目必要运行入口实际通过并留存证据后，才能报告限定范围的 `READY`。安装、升级、卸载和冲突处理见 [初始化指南](skills/ai-delivery/references/initialization.md)。
+`inspect` 只输出候选线索，不验证命令；`init` 安装项目内文件；`check` 成功只表示静态安装达到 `CONFIGURED`。项目必要运行入口实际通过并留存证据后，才能报告限定范围的 `READY`。安装、升级、卸载和冲突处理见 [初始化指南](skills/aegis-delivery/references/initialization.md)。
+
+从旧 `$ai-delivery` 安装升级时，先按[旧名称迁移说明](skills/aegis-delivery/references/initialization.md#从旧名称迁移)处理，不要直接并存两个 Skill。
 
 ## 安装后使用
 
-完成初始化后，在**目标项目**中调用 `$ai-delivery`。新项目和存量项目使用同一流程，但起点不同。
+完成初始化后，在**目标项目**中调用 `$aegis-delivery`。新项目和存量项目使用同一流程，但起点不同。
 
 ### 新项目
 
 从一个可运行、可验收的最小功能开始，不预建未来架构。
 
 ```text
-$ai-delivery
+$aegis-delivery
 新项目：创建一个订单查询服务。
 要求：Python 3.12、仅使用标准库，先完成“输入订单号并返回订单信息”的可运行版本。
 验收：按 README 可启动；正常查询和订单不存在场景都有自动检查。
@@ -179,7 +181,7 @@ $ai-delivery
 先复现问题和验证现有基线，再检查影响范围并做最小兼容修改。
 
 ```text
-$ai-delivery
+$aegis-delivery
 存量项目：修复订单列表切换筛选后页码未重置的问题。
 范围：只修改筛选与分页联动，保持接口和金额计算不变。
 验收：切换或清空筛选后回到第一页；普通翻页保持正确。
@@ -190,7 +192,7 @@ $ai-delivery
 不需要默认手动新建任务。宿主支持独立 Agent 或隔离上下文时，由当前任务串行交接给 Verifier；不支持时，再在同一项目新建一个 Codex 任务：
 
 ```text
-$ai-delivery
+$aegis-delivery
 独立验收 .ai-workflow/tasks/TASK-001.md。
 先根据 Contract、AC、Impact 确定预期，再读取实现并执行必要检查。
 不要修改业务代码，也不要把 Builder 自检当成最终 PASS。
@@ -203,12 +205,12 @@ Fast Verify、失败修复、恢复和交付规则见 [使用手册](docs/usage.
 | 文档 | 用途 |
 | --- | --- |
 | [START.md](START.md) | 给安装者和 Codex 的统一入口 |
-| [SKILL.md](skills/ai-delivery/SKILL.md) | Skill 路由、Builder / Verifier 职责与全程约束 |
-| [V1.6 协议](skills/ai-delivery/references/protocol.md) | 主链、独立验证、Evidence、Loop、交付与 DONE 规则 |
-| [初始化指南](skills/ai-delivery/references/initialization.md) | inspect / init / check、项目基线、升级与故障恢复 |
-| [Task Record schema](skills/ai-delivery/references/task-record-schema.md) | 机器区、AC 合法组合、Evidence 与 Guard 错误规则 |
+| [SKILL.md](skills/aegis-delivery/SKILL.md) | Skill 路由、Builder / Verifier 职责与全程约束 |
+| [V1.6 协议](skills/aegis-delivery/references/protocol.md) | 主链、独立验证、Evidence、Loop、交付与 DONE 规则 |
+| [初始化指南](skills/aegis-delivery/references/initialization.md) | inspect / init / check、项目基线、升级与故障恢复 |
+| [Task Record schema](skills/aegis-delivery/references/task-record-schema.md) | 机器区、AC 合法组合、Evidence 与 Guard 错误规则 |
 | [使用手册](docs/usage.md) | 从需求到验收、恢复和交付的完整步骤 |
-| [任务模板](skills/ai-delivery/assets/task.md) | 一份记录承载契约、证据、交付与知识同步 |
+| [任务模板](skills/aegis-delivery/assets/task.md) | 一份记录承载契约、证据、交付与知识同步 |
 | [示例](examples/bug-fix.md) | 虚构 Bug，展示真实填写方式，不伪造通过结果 |
 | [验证方法](docs/testing.md) | 脚本回归、Agent 行为场景和真实试点边界 |
 | [设计来源](docs/design.md) | V1.6 原文映射、专业 Skill 参考和简化原则 |
