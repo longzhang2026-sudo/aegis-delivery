@@ -47,7 +47,7 @@ def managed(root: Path, relative: str) -> Path:
         path = path / part
         if linked(path):
             raise ValueError(f"Managed path is a link/reparse point: {path}")
-    path.resolve().relative_to(root)
+    path.resolve().relative_to(root.resolve())
     return path
 
 
