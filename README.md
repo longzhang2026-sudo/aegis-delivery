@@ -157,6 +157,8 @@ your-project/
     └── tasks/
 ```
 
+![Aegis Delivery 项目结构架构图](docs/images/aegis-delivery-project-structure.png)
+
 `inspect` 只输出候选线索，不验证命令；`init` 安装项目内文件；`check` 成功只表示静态安装达到 `CONFIGURED`。项目必要运行入口实际通过并留存证据后，才能报告限定范围的 `READY`。安装、升级、卸载和冲突处理见 [初始化指南](skills/aegis-delivery/references/initialization.md)。
 
 从旧 `$ai-delivery` 安装升级时，先按[旧名称迁移说明](skills/aegis-delivery/references/initialization.md#从旧名称迁移)处理，不要直接并存两个 Skill。
