@@ -6,28 +6,35 @@
 [![Package](https://img.shields.io/badge/package-v0.2.0-22A76A.svg)](CHANGELOG.md)
 [English](README.en.md)
 
-**把需求交给 Codex，通过任务契约、独立验证和真实 Evidence，形成可复现的软件交付。**
+**把需求交给 Codex，通过任务契约、分阶段验证和可追溯 Evidence，帮助形成可复现的软件交付。**
 
-AI Delivery Workflow 是《轻量级 AI 软件开发标准化工作流 V1.6》的开源 Skill 实现。它把 Agent 开发从“完成了一段代码”推进到“范围明确、证据有效、可以复现和继续维护的交付”。
+AI Delivery Workflow 是《轻量级 AI 软件开发标准化工作流 V1.6》的开源实现，以项目内 Codex Skill 的形式接入业务项目。它把 Agent 开发从“完成了一段代码”推进到“范围明确、结论有证据、交付可复现且便于继续维护”。
 
-项目采用 Python 标准库和项目本地文件，不要求固定 MCP、Git、Docker 或付费 API。当前包版本为 **v0.2.0**，流程协议保持 **V1.6**。
+项目采用 Python 标准库和项目本地文件，不要求固定 MCP、Git、Docker 或付费 API。它提供执行规则与确定性记录校验，不是无人值守编排服务，也不构成操作系统级权限隔离。
+
+| 项目 | 当前状态 |
+| --- | --- |
+| 包版本 / 协议版本 | **v0.2.0** / **V1.6**（分别维护） |
+| 运行条件 | Codex 或 Agent Skills 兼容工具；初始化脚本需要 Python 3.10+ |
+| 适用范围 | 新项目的首个可运行纵向切片；存量项目的 Bug、功能切片与必要跨模块改动；本地或测试环境 |
+| 成熟度 | **NOT_YET_PILOTED**：自动化工程检查已建立，真实业务试点尚未完成 |
 
 ![AI Delivery Workflow 架构流程图](docs/images/ai-delivery-workflow.png)
 
-主流程以 Contract 固定目标与验收，以 Graph + Impact 约束执行路径和影响面；Builder 负责实现与自检，独立 Verifier 分 Phase A / Phase B 验收；结论只接受绑定当前产物的真实 Evidence。Task Record 和 Deterministic Guard 横切整个流程，但不替代业务判断或实际验证。
+主流程以 Contract 固定目标与验收，以 Graph + Impact 约束执行路径和影响面；Builder 负责实现与自检，Verifier 在独立上下文中分 Phase A / Phase B 验收。结论必须引用绑定当前产物、环境和输入的执行 Evidence；流程本身不能保证证据未被伪造。Task Record 保存任务事实，Deterministic Guard 在交付或恢复前检查记录自洽，但两者都不替代业务判断或实际验证。
 
 ## 解决什么问题
 
-普通 Agent 开发容易出现四类缺口：需求边界在执行中漂移、自检被当作最终验收、测试结论没有对应产物与原始证据、交付后缺少复现和知识同步。本工作流用一条轻量主链约束这些问题：
+缺少显式交付约束时，Agent 开发容易出现四类缺口：需求边界在执行中漂移、自检被当作最终验收、测试结论没有对应产物与原始证据、交付后缺少复现和知识同步。本工作流用一条轻量主链降低这些风险：
 
 - **Contract-first**：先固定目标、范围、兼容边界、AC、风险和上限。
 - **Impact-aware**：检查 Direct / Callers / Data / External / Regression，不只修改表面入口。
 - **Independent Verify**：Builder 不拥有标准路径最终 PASS 权限；Verifier 先固定预期，再读取实现。
-- **Evidence-first**：PASS 必须对应实际产物、环境、输入、操作、结果和报告位置。
+- **Evidence-first**：PASS 必须引用当前产物、环境、输入、操作、结果和原始报告位置。
 - **Bounded Repair**：修复、Replan 和有效执行时间均有上限，必要时进入 Human Gate。
-- **Reproducible Delivery**：交付包含 Artifact、Reproduce、Acceptance 和 Knowledge Sync。
+- **Reproducible Delivery**：交付清单覆盖 Artifact、Reproduce、Acceptance 和 Knowledge Sync。
 
-适合可复现 Bug、普通功能的纵向切片和必要跨模块改动。首版面向开发与本地/测试环境交付，不包含生产运维。
+首版不包含生产发布与运维，也不承诺效率提升、稳定性保证或客户成功结果。
 
 ## 核心流程
 
@@ -51,13 +58,13 @@ Verify 未通过时先分类，再返回正确阶段：
 | 环境、权限或依赖不足 | 标记 BLOCKED，记录恢复条件和剩余额度 |
 | 业务决策、高风险授权、额度耗尽或 Evidence 冲突 | 进入 Human Gate，只询问必要决策 |
 
-同一根因最多自动修复 2 次，实质 Replan 最多 1 次；任务总修复数和有效执行时间另有限额。恢复、换模型或换上下文都不会清零累计值。
+同一根因最多自动修复 2 次，实质 Replan 最多 1 次；包默认任务总修复 4 次、有效执行时间 120 分钟，可在初始化或单任务 Contract 中调整。恢复、换模型或换上下文都不会清零累计值；脚本只校验记录，不自动计时或执行修复。
 
 ## 核心机制
 
 ### 一份 Task Record
 
-每个任务只维护 `.ai-workflow/tasks/<TASK-ID>.md`：
+每个任务只维护一份 `.ai-workflow/tasks/<TASK-ID>.md`：
 
 - JSON 机器区保存状态、风险、额度、AC、Artifact 和 Evidence 引用。
 - Markdown 正文保存 Contract、Graph、Impact、判断依据、交付与知识同步说明。
@@ -67,15 +74,15 @@ Verify 未通过时先分类，再返回正确阶段：
 
 ### 独立验证
 
-- **Phase A**：Verifier 只读取 Contract / AC / Impact，先固定黑盒场景、输入、预期和断言。
+- **Phase A**：独立上下文中的 Verifier 只读取 Contract / AC / Impact，先固定黑盒场景、输入、预期和断言。
 - **Phase B**：再读取 Diff、实现与 Builder 自检，补充事务、缓存、并发、异常等实现特有风险。
 - Builder 自检不能自动升级为 Independent PASS。没有独立上下文时必须保留 `NOT_VERIFIED` 或 `BLOCKED`。
 
-只有同时满足 LOW 风险、不修改可执行逻辑/数据/配置/权限/API、不涉及金额/状态/跨模块且 Diff 可直接审查时，才能使用 Fast Verify。
+只有同时满足 LOW 风险、不修改可执行逻辑/数据/配置/权限/API、不涉及金额/状态/跨模块且 Diff 可直接审查时，才能使用同上下文 Fast Verify。风险标签本身不构成例外依据。
 
 ### Deterministic Guard
 
-`validate-task` 只读检查 Task Record 的 schema、状态组合、额度和 Evidence 引用：
+`validate-task` 只读检查 Task Record 的 schema、状态组合、额度和 Evidence 引用，不会运行项目 build/test：
 
 ```bash
 python .agents/skills/ai-delivery/scripts/workflow.py validate-task --project . --id TASK-001
@@ -85,9 +92,9 @@ python .agents/skills/ai-delivery/scripts/workflow.py validate-task --project . 
 
 ## Skill / Plugin 能力
 
-下列名称是同一个 `ai-delivery` Skill 内的能力分区，不是七个独立后台服务：
+下列名称是同一个 `ai-delivery` Skill 内的能力分区，不是七个独立 Skill、Agent 或后台服务：
 
-| 能力 | 作用 |
+| 能力分区 | 作用 |
 | --- | --- |
 | Contract Skill | 收敛目标、范围、AC、风险、上限和 Human Gate 条件 |
 | Graph Skill | 将任务拆成“动作 -> 输出 -> 检查”，表达必要依赖与执行路径 |
@@ -101,21 +108,30 @@ python .agents/skills/ai-delivery/scripts/workflow.py validate-task --project . 
 
 ## 快速开始
 
+先确认两个不同位置：**本工作流仓库**和**要接入的业务项目**。不要把工作流源码仓库当作业务项目初始化。
+
+| 当前情况 | 推荐入口 |
+| --- | --- |
+| 希望 Codex 完成检查、安装和项目基线验证 | 方式一 |
+| 希望自己执行安装命令 | 方式二 |
+| 目标项目已存在 `.agents/skills/ai-delivery` | 跳到[安装后使用](#安装后使用)，无需重复安装 |
+
 ### 方式一：交给 Codex
 
-把下面内容交给 Codex，并明确目标业务项目的位置：
+把下面内容交给 Codex，并将占位符替换为真实路径：
 
 ```text
-请把 https://github.com/longzhang2026-sudo/ai-delivery-workflow
-中的 AI Delivery Skill 安装到当前项目。
+工作流仓库：<本仓库克隆或下载解压后的目录>
+目标项目：<要接入工作流的业务项目目录>
 
-先读取仓库 START.md 和初始化指南，执行 inspect -> init -> check；
+请按工作流仓库中的 START.md 和初始化指南接入目标项目，
+执行 inspect -> init -> check，再识别并验证业务项目必要的 build/test/run 入口；
 保留当前项目的 AGENTS.md 和已有规则，不修改全局 Codex 配置。
-识别并实际验证项目必要的 build/test/run 入口，输出初始化报告。
-尚未执行的检查保持 NOT_VERIFIED；check 成功只能报告 CONFIGURED。
+输出初始化报告。尚未执行的检查保持 NOT_VERIFIED；
+check 成功只能报告 CONFIGURED，基线实际通过后才能报告限定范围的 READY。
 ```
 
-完整可复制指令见 [START.md](START.md)。需要已登录可用的 Codex、可写目标项目以及 Python 3.10+。首次安装只准备工作流，不会自动修改业务代码。
+完整可复制指令见 [START.md](START.md)。需要已登录可用的 Codex、已存在且可写的目标项目，以及 Python 3.10+。首次安装只准备工作流，不会自动修改业务代码。
 
 ### 方式二：手动初始化
 
@@ -127,7 +143,7 @@ python skills/ai-delivery/scripts/workflow.py init --project "/path/to/project"
 python skills/ai-delivery/scripts/workflow.py check --project "/path/to/project"
 ```
 
-Windows 可以使用 `python` 或 `py -3`，macOS/Linux 按安装情况使用 `python3`。目标项目无需 GitHub 账号，也不要求 Git；也可以下载 ZIP 后让 Codex 读取本地目录。
+以上命令在工作流仓库根目录运行，`/path/to/project` 必须替换为已存在的业务项目目录。Windows 可以使用 `python` 或 `py -3` 和 Windows 路径；macOS/Linux 按安装情况使用 `python3`。Skill 安装和目标项目本身不要求 GitHub 账号或 Git；若不使用 Git 获取本仓库，可下载 ZIP。
 
 初始化会在目标项目中安装：
 
@@ -141,20 +157,57 @@ your-project/
     └── tasks/
 ```
 
-`check` 成功只表示静态安装达到 `CONFIGURED`；项目必要运行入口实际通过后，才能报告限定范围的 `READY`。安装、升级、卸载和冲突处理见 [初始化指南](skills/ai-delivery/references/initialization.md)。
+`inspect` 只输出候选线索，不验证命令；`init` 安装项目内文件；`check` 成功只表示静态安装达到 `CONFIGURED`。项目必要运行入口实际通过并留存证据后，才能报告限定范围的 `READY`。安装、升级、卸载和冲突处理见 [初始化指南](skills/ai-delivery/references/initialization.md)。
 
 ## 安装后使用
 
-在目标项目中显式调用：
+完成初始化后，在**目标项目**中显式调用 `$ai-delivery`。新项目先建立首个可运行基线，存量项目先验证现有基线；两者使用同一条主流程，区别只放在 Contract、Graph、Impact 和验收重点中，不增加另一套工作流。
+
+### 新项目：从首个可运行切片开始
+
+目标目录可以是空目录或新建仓库，但必须与工作流源码仓库分开。先定义一个端到端可运行、可验收的最小切片；技术栈或关键业务规则尚未确定时，先完成必要决策，不让 Agent 默认为项目补造长期架构。
 
 ```text
 $ai-delivery
-修复订单列表切换筛选后页码没有重置的问题。
-范围：只修改筛选与分页联动，保持接口和金额计算不变。
-验收：筛选变化后回到第一页；清空筛选恢复默认；普通翻页保持正确。
+项目模式：新项目。
+目标：创建一个可在本地运行的订单查询服务。
+首个纵向切片：输入订单号，返回订单基础信息；订单不存在时返回明确错误。
+技术与兼容约束：Python 3.12；只使用标准库；支持 Windows 和 Linux。
+非目标：登录、写入订单、部署和生产运维。
+验收：从干净环境按 README 可启动；正常与不存在订单场景均有自动检查；
+记录实际 build/test/run 命令、产物和 Evidence。
 ```
 
-Builder 完成后，在新的 Codex 任务中执行独立验收：
+新项目重点核对项目骨架、依赖与运行入口、接口和数据边界、首个纵向切片，以及从干净环境复现的步骤。不要在第一个任务预建平台、通用框架或未来功能。
+
+### 存量项目：先确认基线和影响面
+
+先读取项目规则、README 与实际构建配置，复现当前行为并确认基线，再追踪 Direct / Callers / Data / External / Regression。实现以最小兼容改动为原则，不借当前任务顺手重构无关模块。
+
+```text
+$ai-delivery
+项目模式：存量项目。
+任务：修复订单列表切换筛选后页码没有重置的问题。
+当前行为与复现：在第 3 页切换状态筛选，请求仍携带 page=3。
+期望行为：筛选变化后回到第 1 页；普通翻页继续使用当前筛选。
+范围：只修改筛选与分页联动，保持接口和金额计算不变。
+验收：状态筛选和清空筛选都会重置页码；普通翻页保持正确；相关回归通过。
+```
+
+### 独立验收：不等于每次手动新建任务
+
+标准路径要求的是**新的独立上下文**，不是固定要求使用者每次手动新建 Codex 任务。按宿主实际能力选择：
+
+| 条件 | 验收方式 | 是否需要使用者新建任务 |
+| --- | --- | --- |
+| 宿主已有经过授权的独立 Agent / 隔离执行上下文 | 当前任务在 Builder 停止写入后发起 Verifier，并按 Phase A → Phase B 串行交接 | 不需要 |
+| 宿主没有独立上下文能力 | 输出下方交接提示，由使用者在同一项目打开一个新的 Codex 任务 | 需要一次 |
+| 任务满足全部 LOW 风险白名单条件 | 记录例外依据后，在同一上下文执行 Fast Verify | 不需要 |
+| 无法获得独立上下文且不符合 LOW 例外 | 交付候选和缺口，保持 `NOT_VERIFIED` 或 `BLOCKED` | 不得声明 PASS |
+
+Skill 是执行指导，不是后台编排器；能否自动建立隔离上下文取决于宿主能力与授权。Builder 与 Verifier 不要并发修改同一份 Task Record。正式 FAIL 修复后可以交回原 Verifier 上下文复验，不必每轮重新创建任务；只有协议规定的 Context Reset 场景才更换上下文，且累计额度不清零。
+
+仅在宿主没有独立上下文能力时，复制以下交接提示：
 
 ```text
 $ai-delivery
@@ -164,7 +217,7 @@ Phase B 再读取实现 Diff 和交接材料，实际运行必要验证。
 不要修改业务代码，不把 Builder 自检当成最终 PASS。
 ```
 
-完整的新任务、Verifier、恢复和交付示例见 [使用手册](docs/usage.md)。
+完整的任务启动、Verifier、失败修复、恢复和交付示例见 [使用手册](docs/usage.md)。
 
 ## 文档导航
 
@@ -196,6 +249,6 @@ Phase B 再读取实现 Diff 和交接材料，实际运行必要验证。
 python -m unittest discover -s tests -v
 ```
 
-测试覆盖安装器、项目配置、Task Guard、有限项目扫描与文档结构，并在 Windows、Linux、macOS 的 Python 3.10 / 3.13 环境运行。测试通过不等于真实客户项目已经完成 V1.6 试点。
+自动测试覆盖安装器、项目配置、Task Guard、有限项目扫描与本地文档链接；CI 配置在 Windows、Linux、macOS 的 Python 3.10 / 3.13 环境运行同一套检查。单元测试或 CI 通过不等于真实客户项目已经完成 V1.6 试点。
 
 欢迎提交问题和最小修复。开始前请阅读 [贡献指南](CONTRIBUTING.md)、[变更记录](CHANGELOG.md) 与 [MIT 许可证](LICENSE)。本仓库只参考成熟 Skill 的组织方式，不复制受其他许可约束的实现。
