@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ai-delivery-workflow",
+  "version": "0.2.0",
+  "description": "Lightweight, evidence-first software delivery for Codex. 中文优先的 AI 软件交付工作流。",
+  "author": {
+    "name": "Long",
+    "url": "https://github.com/longzhang2026-sudo"
+  },
+  "homepage": "https://github.com/longzhang2026-sudo/ai-delivery-workflow",
+  "repository": "https://github.com/longzhang2026-sudo/ai-delivery-workflow",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "skills",
+    "software-delivery",
+    "verification",
+    "workflow"
+  ]
+}

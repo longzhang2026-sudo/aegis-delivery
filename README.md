@@ -6,7 +6,7 @@
 
 **把需求交给 Codex，通过任务契约、独立验证和真实证据，得到可复现的软件交付。**
 
-这是 Long 的《轻量级 AI 软件开发标准化工作流 V1.6》的开源 Skill 实现。包版本 **0.1.0**，流程协议 **1.6**。中文优先、项目内安装、Python 标准库实现、没有必需的 MCP 或付费 API。
+这是 Long 的《轻量级 AI 软件开发标准化工作流 V1.6》的开源 Skill 实现。包版本 **0.2.0**，流程协议仍为 **1.6**。中文优先、项目内安装、Python 标准库实现、没有必需的 MCP 或付费 API。
 
 ```mermaid
 flowchart LR
@@ -28,7 +28,7 @@ flowchart LR
 
 标准路径由 Builder 实现、独立上下文的 Verifier 验收。严格符合白名单的 LOW 风险文档类改动可简化。首版覆盖开发与本地/测试环境交付，不包含生产运维。
 
-**能力边界：** 本包提供 Skill 指导和确定性初始化工具，不是无人值守平台。它不会自动开通账号、获得权限、部署业务系统或保证 AI 遵守每一项规则；项目真实行为必须运行验证，生产操作需要单独授权。
+**能力边界：** 本包提供 Skill 指导、确定性初始化和任务记录 Guard，不是无人值守平台。Guard 只检查记录结构和状态自洽，不会判断业务结果真实、证明独立验证发生或提供防篡改历史；项目真实行为必须运行验证，生产操作需要单独授权。
 
 ## 最快开始：把这段交给 Codex
 
@@ -86,6 +86,14 @@ Phase A 先只读 Contract、AC、Impact，固定黑盒场景与预期；
 
 完整任务、验收、恢复、交付提示词见 [使用手册](docs/usage.md)。
 
+新任务会在同一份 Markdown 中保存可见的 JSON 机器区和可读正文。交付或恢复前运行只读 Guard：
+
+```bash
+python .agents/skills/ai-delivery/scripts/workflow.py validate-task --project . --id TASK-001
+```
+
+合法 DRAFT 缺口产生 WARN 并返回 0；结构矛盾或 DONE 门槛不满足返回 ERROR 和退出码 2。v0.1 旧任务不会被自动改写，迁移方法见 [Task Record schema](skills/ai-delivery/references/task-record-schema.md#旧任务)。
+
 ## 仓库内容
 
 | 入口 | 用途 |
@@ -93,13 +101,15 @@ Phase A 先只读 Contract、AC、Impact，固定黑盒场景与预期；
 | [START.md](START.md) | 给安装者和 Codex 的统一入口 |
 | [SKILL.md](skills/ai-delivery/SKILL.md) | 可独立安装的 Skill 与意图路由 |
 | [协议](skills/ai-delivery/references/protocol.md) | V1.6 核心规则和明确的实现约定 |
+| [Task Record schema](skills/ai-delivery/references/task-record-schema.md) | 机器区、AC 合法组合、Evidence 与 Guard 错误规则 |
 | [初始化指南](skills/ai-delivery/references/initialization.md) | 安装、项目基线、状态、恢复和升级 |
 | [使用手册](docs/usage.md) | 从一个需求到验收与交付的完整步骤 |
 | [任务模板](skills/ai-delivery/assets/task.md) | 一份记录承载契约、证据、交付与同步 |
 | [示例](examples/bug-fix.md) | 虚构场景，展示如何填写，不伪造通过结果 |
 | [验证方法](docs/testing.md) | 脚本回归、Agent 行为场景与真实试点边界 |
 | [设计来源](docs/design.md) | 原文映射、参考项目、简化与限制 |
-| [.codex-plugin/plugin.json](.codex-plugin/plugin.json) | 可选 Codex 插件分发清单 |
+| [plugin.json](plugin.json) | portable Agent Plugin 根清单 |
+| [.codex-plugin/plugin.json](.codex-plugin/plugin.json) | Codex 界面兼容清单 |
 
 项目内 Skill 安装是推荐入口。插件清单不表示本项目已进入官方市场，也不会自动获得外部工具权限；当前 Codex 的插件分发方式见 [官方文档](https://developers.openai.com/plugins/build/plugins)。
 
@@ -109,6 +119,6 @@ Phase A 先只读 Contract、AC、Impact，固定黑盒场景与预期；
 python -m unittest discover -s tests -v
 ```
 
-测试检查安装器、配置与文档结构，不代表真实客户项目已经通过 V1.6 试点。CI 状态以页面实际运行结果为准。首个版本仍需要真实 Bug、功能切片、跨模块任务试点，参见 [验证方法](docs/testing.md)。
+测试检查安装器、配置、Task Guard、有限扫描与文档结构，不代表真实客户项目已经通过 V1.6 试点。CI 状态以页面实际运行结果为准。当前仍需要真实 Bug、功能切片、跨模块任务试点，参见 [验证方法](docs/testing.md)。
 
 欢迎提交问题和最小修复，见 [贡献指南](CONTRIBUTING.md)、[变更记录](CHANGELOG.md) 与 [MIT 许可证](LICENSE)。本仓库自行实现，参考成熟 Skill 的组织方式，不复制其受不同许可约束的内容。

@@ -15,7 +15,7 @@ license: MIT
 | 用户意图 | 操作 |
 | --- | --- |
 | 安装、部署工作流、初始化项目 | 读取 [初始化指南](references/initialization.md)，执行 inspect → init → check → 项目基线检查 |
-| 开发或修复任务 | 读取 [流程规则](references/protocol.md)，检查项目规则与配置，创建/复用一份任务记录 |
+| 开发或修复任务 | 读取 [流程规则](references/protocol.md)，检查项目规则与配置，创建/复用一份任务记录；需要解释机器区时读取 [任务记录 schema](references/task-record-schema.md) |
 | 验收、独立审查 | 先使用下面的 Verifier 路由，避免提前看到实现结论 |
 | 恢复任务 | 读取现有记录，复核 Contract、产物、Evidence、累计额度，再从受阻阶段继续 |
 
@@ -32,6 +32,8 @@ license: MIT
 5. 正式 FAIL 后按规则有限修复；验证通过后整理交付和知识增量，检查 DONE 条件。
 
 用 `scripts/workflow.py new-task --project <目录> --id <任务ID> --title <标题>` 生成 [任务模板](assets/task.md)，或复用已有任务载体。模板字段必须以项目事实填写，未执行的结果保持 NOT_VERIFIED。
+
+在交付或恢复前运行 `scripts/workflow.py validate-task --project <目录> --id <任务ID>`。它只读检查 schema、状态组合、额度与 Evidence 引用；WARN 不阻断 DRAFT，ERROR 返回退出码 2。旧任务缺少机器区时按 [schema 的迁移说明](references/task-record-schema.md#旧任务) 人工补齐，不自动改写。
 
 ## Verifier 路由：先预期，后实现
 

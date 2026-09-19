@@ -17,7 +17,54 @@ workflow = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(workflow)
 
 
+def write_record(path: Path, record: dict) -> None:
+    text = path.read_text(encoding="utf-8")
+    start = text.index(workflow.RECORD_START)
+    end = text.index(workflow.RECORD_END, start) + len(workflow.RECORD_END)
+    block = (workflow.RECORD_START + "\n```json\n"
+             + json.dumps(record, ensure_ascii=False, indent=2)
+             + "\n```\n" + workflow.RECORD_END)
+    path.write_text(text[:start] + block + text[end:], encoding="utf-8", newline="\n")
+
+
+def issue_codes(result: dict) -> set[str]:
+    return {issue["code"] for issue in result["issues"]}
+
+
 class WorkflowChecks(unittest.TestCase):
+    def installed_task(self, root: Path, task_id: str = "TASK-001") -> tuple[Path, dict]:
+        workflow.initialize(root, 4, 120)
+        result = workflow.new_task(root, task_id, "修复分页")
+        path = root / result["task"]
+        return path, workflow.extract_task_record(path.read_text(encoding="utf-8"))
+
+    def done_record(self, record: dict) -> dict:
+        record["status"] = "DONE"
+        record["artifact_id"] = "git:abc123+clean"
+        record["knowledge_sync"] = {"status": "UPDATED", "reason": None}
+        record["delivery"] = {
+            "artifact_ref": "#artifact",
+            "reproduce_ref": "#reproduce",
+            "acceptance_ref": "#acceptance",
+        }
+        record["acs"][0].update({
+            "description": "切换筛选后回到第一页",
+            "applicability": "APPLICABLE",
+            "executed": True,
+            "verdict": "PASS",
+            "evidence_batch": "EV-01",
+        })
+        record["evidence_batches"] = [{
+            "id": "EV-01",
+            "artifact_id": "git:abc123+clean",
+            "environment": "Windows test",
+            "inputs": ["page=3, filter=new"],
+            "actions": ["python -m unittest"],
+            "results": ["exit 0"],
+            "report_locations": ["reports/test.txt"],
+        }]
+        return record
+
     def test_install_customize_repeat_task_and_tamper(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / "中文项目 with spaces"
@@ -33,25 +80,171 @@ class WorkflowChecks(unittest.TestCase):
             self.assertTrue((root / "AGENTS.md").read_bytes().startswith(original))
             config = root / workflow.PROFILE
             data = json.loads(config.read_text(encoding="utf-8"))
+            data["package_version"] = "0.1.0"
             data["commands"] = {"test": {"command": "custom-test", "status": "NOT_VERIFIED"}}
+            data["future_field"] = {"preserved": True}
             config.write_bytes(workflow.encoded(data))
-            snapshot = {p.relative_to(root): (p.read_bytes(), p.stat().st_mtime_ns)
-                        for p in root.rglob("*") if p.is_file()}
+            snapshot = {path.relative_to(root): (path.read_bytes(), path.stat().st_mtime_ns)
+                        for path in root.rglob("*") if path.is_file()}
             self.assertEqual(workflow.initialize(root, 8, 300)["changed_files"], [])
-            self.assertEqual(snapshot, {p.relative_to(root): (p.read_bytes(), p.stat().st_mtime_ns)
-                                       for p in root.rglob("*") if p.is_file()})
+            self.assertEqual(snapshot, {path.relative_to(root): (path.read_bytes(), path.stat().st_mtime_ns)
+                                       for path in root.rglob("*") if path.is_file()})
             self.assertEqual(workflow.check(root)["status"], "CONFIGURED")
-            result = workflow.new_task(root, "TASK-001", "修复分页")
+            result = workflow.new_task(root, "TASK-001", '修复"分页"')
             content = (root / result["task"]).read_text(encoding="utf-8")
-            self.assertIn("任务总修复 3 次", content)
-            self.assertIn("NOT_VERIFIED", content)
+            record = workflow.extract_task_record(content)
+            self.assertEqual(record["budgets"]["task_repairs_max"], 3)
+            self.assertEqual(record["budgets"]["effective_minutes_max"], 90)
+            self.assertEqual(record["title"], '修复"分页"')
             self.assertNotIn("{{", content)
+            draft = workflow.validate_task(root, "TASK-001")
+            self.assertTrue(draft["valid"])
+            self.assertIn("AC_APPLICABILITY_UNKNOWN", issue_codes(draft))
             with self.assertRaises(FileExistsError):
                 workflow.new_task(root, "TASK-001", "must not overwrite")
             installed = root / workflow.INSTALL / "SKILL.md"
             installed.write_text("tampered", encoding="utf-8")
             with self.assertRaises(ValueError):
                 workflow.check(root)
+
+    def test_project_profile_validation(self):
+        mutations = {
+            "schema bool": lambda data: data.update(schema_version=True),
+            "package empty": lambda data: data.update(package_version=""),
+            "root bool": lambda data: data["defaults"].update(root_repairs=True),
+            "task bool": lambda data: data["defaults"].update(task_repairs=True),
+            "command empty": lambda data: data.update(commands={"test": {"command": "", "status": "NOT_VERIFIED"}}),
+            "command cwd": lambda data: data.update(commands={"test": {"command": "x", "cwd": "", "status": "NOT_VERIFIED"}}),
+            "command status": lambda data: data.update(commands={"test": {"command": "x", "status": "PASS"}}),
+            "knowledge path": lambda data: data.update(knowledge_paths=[""]),
+            "baseline": lambda data: data.update(baseline="PASS"),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                workflow.initialize(root, 4, 120)
+                config = root / workflow.PROFILE
+                data = json.loads(config.read_text(encoding="utf-8"))
+                mutate(data)
+                config.write_bytes(workflow.encoded(data))
+                with self.assertRaises(ValueError) as caught:
+                    workflow.profile(root)
+                self.assertIn(":", str(caught.exception))
+
+    def test_task_guard_done_na_conditional_optional_and_artifact(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path, record = self.installed_task(root)
+            record = self.done_record(record)
+            write_record(path, record)
+            self.assertTrue(workflow.validate_task(root, "TASK-001")["valid"])
+
+            required_na = json.loads(json.dumps(record))
+            required_na["acs"][0].update({
+                "applicability": "NOT_APPLICABLE",
+                "applicability_reason": "项目没有缓存层",
+                "applicability_basis": "源码检索未发现缓存依赖",
+                "applicability_decision_stage": "BEFORE_AC_EXECUTION",
+                "executed": False,
+                "verdict": "N/A",
+                "evidence_batch": None,
+            })
+            required_na["evidence_batches"] = []
+            write_record(path, required_na)
+            self.assertTrue(workflow.validate_task(root, "TASK-001")["valid"])
+
+            late_na = json.loads(json.dumps(required_na))
+            late_na["acs"][0]["executed"] = True
+            write_record(path, late_na)
+            self.assertIn("AC_NA_AFTER_EXECUTION", issue_codes(workflow.validate_task(root, "TASK-001")))
+
+            conditional = json.loads(json.dumps(required_na))
+            conditional["acs"][0]["type"] = "CONDITIONAL"
+            conditional["acs"][0]["trigger"] = {
+                "description": "项目存在缓存层", "state": "TRIGGERED", "basis": "源码检查"
+            }
+            write_record(path, conditional)
+            self.assertIn("AC_TRIGGER_APPLICABILITY_MISMATCH",
+                          issue_codes(workflow.validate_task(root, "TASK-001")))
+
+            conditional_na = json.loads(json.dumps(required_na))
+            conditional_na["acs"][0].update({
+                "type": "CONDITIONAL",
+                "applicability_reason": None,
+                "applicability_basis": None,
+                "trigger": {"description": "项目存在缓存层", "state": "NOT_TRIGGERED",
+                            "basis": "源码检索未发现缓存依赖"},
+            })
+            write_record(path, conditional_na)
+            self.assertTrue(workflow.validate_task(root, "TASK-001")["valid"])
+
+            optional_fail = self.done_record(json.loads(json.dumps(record)))
+            optional_fail["acs"][0].update({"type": "OPTIONAL", "verdict": "FAIL"})
+            write_record(path, optional_fail)
+            self.assertTrue(workflow.validate_task(root, "TASK-001")["valid"])
+
+            no_evidence = self.done_record(json.loads(json.dumps(record)))
+            no_evidence["acs"][0]["evidence_batch"] = None
+            write_record(path, no_evidence)
+            self.assertIn("AC_PASS_EVIDENCE_INCOMPLETE",
+                          issue_codes(workflow.validate_task(root, "TASK-001")))
+
+            stale = self.done_record(json.loads(json.dumps(record)))
+            stale["artifact_id"] = "git:new-artifact"
+            write_record(path, stale)
+            result = workflow.validate_task(root, "TASK-001")
+            self.assertTrue(result["valid"])
+            self.assertIn("EVIDENCE_ARTIFACT_MISMATCH", issue_codes(result))
+
+    def test_legacy_task_and_cli_validate_are_read_only(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            workflow.initialize(root, 4, 120)
+            task = root / ".ai-workflow/tasks/LEGACY-1.md"
+            task.parent.mkdir(parents=True)
+            task.write_text("# Legacy\n\nNOT_VERIFIED\n", encoding="utf-8")
+            before = task.read_bytes()
+            result = workflow.validate_task(root, "LEGACY-1")
+            self.assertFalse(result["valid"])
+            self.assertEqual(issue_codes(result), {"TASK_METADATA_MISSING"})
+            self.assertEqual(task.read_bytes(), before)
+            process = subprocess.run(
+                [sys.executable, str(SCRIPT), "validate-task", "--project", str(root), "--id", "LEGACY-1"],
+                capture_output=True, text=True, encoding="utf-8", env=dict(os.environ, PYTHONUTF8="1"),
+            )
+            self.assertEqual(process.returncode, 2)
+            self.assertEqual(json.loads(process.stdout)["issues"][0]["code"], "TASK_METADATA_MISSING")
+            self.assertEqual(task.read_bytes(), before)
+
+    def test_inspect_depth_sorting_exclusions_and_links(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for relative in ("package.json", "apps/api/pyproject.toml", "apps/web/package.json",
+                             "too/deep/nested/go.mod", "node_modules/pkg/package.json",
+                             "README.md", "apps/api/tests"):
+                path = root / relative
+                if path.suffix or path.name == "README.md":
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_text("{}", encoding="utf-8")
+                else:
+                    path.mkdir(parents=True, exist_ok=True)
+            hints = workflow.inspect(root)
+            self.assertEqual(hints["stack_hints"], [
+                "apps/api/pyproject.toml", "apps/web/package.json", "package.json"
+            ])
+            self.assertEqual(hints["module_hints"], ["apps/api", "apps/web"])
+            self.assertEqual(hints["context_hints"], ["README.md", "apps/api/tests"])
+            self.assertFalse(hints["runtime_verified"])
+            self.assertFalse(hints["writes"])
+            outside = root.parent / (root.name + "-outside")
+            outside.mkdir()
+            (outside / "package.json").write_text("{}", encoding="utf-8")
+            try:
+                (root / "linked-module").symlink_to(outside, target_is_directory=True)
+            except OSError:
+                pass
+            else:
+                self.assertNotIn("linked-module/package.json", workflow.inspect(root)["stack_hints"])
 
     def test_conflict_preflight_and_input_boundaries(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -72,12 +265,6 @@ class WorkflowChecks(unittest.TestCase):
                     workflow.new_task(root, task_id, "title")
             with self.assertRaises(ValueError):
                 workflow.new_task(root, "valid", "line\nbreak")
-            config = root / workflow.PROFILE
-            data = json.loads(config.read_text(encoding="utf-8"))
-            data["defaults"]["task_repairs"] = True
-            config.write_bytes(workflow.encoded(data))
-            with self.assertRaises(ValueError):
-                workflow.check(root)
 
     def test_managed_link_refused(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -98,9 +285,11 @@ class WorkflowChecks(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             env = dict(os.environ, PYTHONUTF8="1")
+
             def run(script, *args):
                 return subprocess.run([sys.executable, str(script), *args, "--project", str(root)],
                                       capture_output=True, text=True, encoding="utf-8", env=env)
+
             failed = run(SCRIPT, "init", "--max-repairs", "0")
             self.assertEqual(failed.returncode, 2)
             self.assertEqual(json.loads(failed.stderr)["status"], "BLOCKED")
@@ -113,15 +302,29 @@ class WorkflowChecks(unittest.TestCase):
             self.assertEqual(run(installed, "check").returncode, 0)
             task = run(installed, "new-task", "--id", "TASK-002", "--title", "独立安装")
             self.assertEqual(task.returncode, 0, task.stderr)
+            guard = run(installed, "validate-task", "--id", "TASK-002")
+            self.assertEqual(guard.returncode, 0, guard.stderr)
+            self.assertTrue(json.loads(guard.stdout)["valid"])
 
     def test_package_metadata_and_local_document_links(self):
-        manifest = json.loads((REPO / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["name"], "ai-delivery-workflow")
-        self.assertEqual(manifest["version"], workflow.VERSION)
-        self.assertTrue((REPO / manifest["skills"]).is_dir())
+        portable = json.loads((REPO / "plugin.json").read_text(encoding="utf-8"))
+        compatibility = json.loads((REPO / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))
+        self.assertEqual(portable["$schema"], "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json")
+        self.assertNotIn("skills", portable)
+        self.assertNotIn("extensions", portable)
+        for key in ("name", "version", "description", "author", "homepage", "repository", "license", "keywords"):
+            self.assertEqual(portable[key], compatibility[key])
+        self.assertEqual(portable["version"], workflow.VERSION)
+        self.assertTrue((REPO / compatibility["skills"]).is_dir())
         skill = (workflow.SKILL / "SKILL.md").read_text(encoding="utf-8")
         self.assertTrue(skill.startswith("---\nname: ai-delivery\n"))
         self.assertIn("description:", skill.split("---", 2)[1])
+        openai_yaml = (workflow.SKILL / "agents/openai.yaml").read_text(encoding="utf-8")
+        self.assertIn("allow_implicit_invocation: false", openai_yaml)
+        example = (REPO / "examples/bug-fix.md").read_text(encoding="utf-8")
+        example_result = workflow.validate_record(workflow.extract_task_record(example), "EXAMPLE-BUG-001")
+        self.assertTrue(example_result["valid"])
+        self.assertIn("AC_APPLICABILITY_UNKNOWN", issue_codes(example_result))
         for path in REPO.rglob("*.md"):
             if ".git" in path.parts:
                 continue
