@@ -1,5 +1,9 @@
 # Aegis Delivery
 
+<p align="center">
+  <img src="docs/images/aegis-delivery-mark.svg" width="96" alt="Aegis Delivery 标志">
+</p>
+
 [![CI](https://github.com/longzhang2026-sudo/aegis-delivery/actions/workflows/ci.yml/badge.svg)](https://github.com/longzhang2026-sudo/aegis-delivery/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Protocol](https://img.shields.io/badge/protocol-V1.6-0B67C5.svg)](skills/aegis-delivery/references/protocol.md)
@@ -18,6 +22,25 @@ Aegis Delivery 是《轻量级 AI 软件开发标准化工作流 V1.6》的开�
 | 运行条件 | Codex 或 Agent Skills 兼容工具；初始化脚本需要 Python 3.10+ |
 | 适用范围 | 新项目的首个可运行纵向切片；存量项目的 Bug、功能切片与必要跨模块改动；本地或测试环境 |
 | 成熟度 | **NOT_YET_PILOTED**：自动化工程检查已建立，真实业务试点尚未完成 |
+
+## 60 秒试用
+
+先让 Codex 从本仓库安装 Skill：
+
+```text
+$skill-installer
+从 https://github.com/longzhang2026-sudo/aegis-delivery/tree/main/skills/aegis-delivery 安装 Skill。
+```
+
+然后在目标项目中调用：
+
+```text
+$aegis-delivery
+检查并初始化当前项目，保留已有 AGENTS.md 规则；执行 inspect -> init -> check，
+再识别实际 build/test/run 入口。未执行的检查保持 NOT_VERIFIED。
+```
+
+只想先看效果，可直接阅读[虚构 Bug 示例](examples/bug-fix.md)；需要手动安装或迁移旧版，见[快速开始](#快速开始)。
 
 ![Aegis Delivery 架构流程图](docs/images/aegis-delivery.png)
 

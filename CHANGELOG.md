@@ -5,6 +5,7 @@
 - 项目、插件与 Skill 从 `ai-delivery-workflow` / `$ai-delivery` 统一更名为 `aegis-delivery` / `$aegis-delivery`。
 - 新安装使用 `.agents/skills/aegis-delivery` 和新托管标记；检测到旧安装时拒绝静默双装并引导人工迁移。
 - `validate-task` 继续读取旧 `ai-delivery-record` 机器区，已有任务记录无需因改名重写。
+- 增加安装优先的中英文快速入口、插件提交材料与可缩放品牌标志。
 
 ## 0.2.0 — 2026-09-19
 

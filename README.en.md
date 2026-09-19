@@ -1,6 +1,13 @@
 # Aegis Delivery
 
-[中文详细文档](README.md) · [MIT](LICENSE)
+<p align="center">
+  <img src="docs/images/aegis-delivery-mark.svg" width="96" alt="Aegis Delivery logo">
+</p>
+
+[![CI](https://github.com/longzhang2026-sudo/aegis-delivery/actions/workflows/ci.yml/badge.svg)](https://github.com/longzhang2026-sudo/aegis-delivery/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Package](https://img.shields.io/badge/package-v0.2.0-22A76A.svg)](CHANGELOG.md)
+[中文详细文档](README.md)
 
 A project-local Codex Skill for lightweight, evidence-first software delivery.
 Package **0.2.0** implements Long's workflow protocol **1.6**. The detailed workflow
@@ -13,6 +20,26 @@ It defines acceptance before implementation, separates builder and verifier cont
 limits repair attempts, and ties conclusions to actual artifact/environment evidence.
 It is agent guidance plus deterministic record validation, not an unattended orchestration service or hard security boundary.
 Production operations are outside the first release's scope.
+
+## Try it in 60 seconds
+
+Ask Codex to install the Skill directly from this repository:
+
+```text
+$skill-installer
+Install the skill from https://github.com/longzhang2026-sudo/aegis-delivery/tree/main/skills/aegis-delivery
+```
+
+Then invoke it inside the target project:
+
+```text
+$aegis-delivery
+Inspect and initialize this project without overwriting its existing AGENTS.md rules.
+Run inspect -> init -> check, then identify and validate its real build/test/run entry points.
+Keep checks that were not executed as NOT_VERIFIED.
+```
+
+For a no-install preview, read the [fictional bug-fix example](examples/bug-fix.md).
 
 ## Install into an existing project
 

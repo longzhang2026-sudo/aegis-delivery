@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Aegis Delivery</title>
+  <desc id="desc">A blue shield with a delivery check mark.</desc>
+  <defs>
+    <linearGradient id="bg" x1="64" y1="48" x2="448" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1F8FFF"/>
+      <stop offset="1" stop-color="#0645C9"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="162" y1="118" x2="350" y2="394" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#D7ECFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M256 92 386 142v94c0 91-50 157-130 188-80-31-130-97-130-188v-94L256 92Z" fill="url(#shield)"/>
+  <path d="m190 254 43 43 91-96" fill="none" stroke="#0868DE" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M184 348h144" stroke="#79BFFF" stroke-width="18" stroke-linecap="round"/>
+</svg>
