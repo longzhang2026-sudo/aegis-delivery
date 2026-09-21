@@ -196,6 +196,47 @@ class WorkflowChecks(unittest.TestCase):
             self.assertTrue(result["valid"])
             self.assertIn("EVIDENCE_ARTIFACT_MISMATCH", issue_codes(result))
 
+    def test_human_verification_record_paths(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path, base = self.installed_task(root)
+
+            passed = self.done_record(json.loads(json.dumps(base)))
+            passed["evidence_batches"][0].update({
+                "id": "H-01",
+                "environment": "staging; human verifier",
+                "inputs": ["test account; page=3, filter=new"],
+                "actions": ["human changed and cleared the filter"],
+                "results": ["page returned to 1 and filter behavior matched expectations"],
+                "report_locations": ["#human-verification-h-01"],
+            })
+            passed["acs"][0]["evidence_batch"] = "H-01"
+            write_record(path, passed)
+            self.assertTrue(workflow.validate_task(root, "TASK-001")["valid"])
+
+            failed = json.loads(json.dumps(passed))
+            failed["status"] = "ACTIVE"
+            failed["acs"][0]["verdict"] = "FAIL"
+            failed["evidence_batches"][0]["results"] = ["page stayed on 3"]
+            write_record(path, failed)
+            self.assertTrue(workflow.validate_task(root, "TASK-001")["valid"])
+
+            blocked = json.loads(json.dumps(base))
+            blocked["status"] = "BLOCKED"
+            blocked["artifact_id"] = "git:abc123+clean"
+            blocked["acs"][0].update({
+                "description": "切换筛选后回到第一页",
+                "applicability": "APPLICABLE",
+                "verdict": "BLOCKED",
+            })
+            write_record(path, blocked)
+            self.assertTrue(workflow.validate_task(root, "TASK-001")["valid"])
+
+            duplicate = json.loads(json.dumps(passed))
+            duplicate["evidence_batches"].append(json.loads(json.dumps(duplicate["evidence_batches"][0])))
+            write_record(path, duplicate)
+            self.assertIn("FIELD_VALUE_INVALID", issue_codes(workflow.validate_task(root, "TASK-001")))
+
     def test_legacy_task_and_cli_validate_are_read_only(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

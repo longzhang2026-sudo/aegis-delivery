@@ -48,6 +48,32 @@ Builder 可读写、构建和本地测试；不改验收语义，不拥有标准
 
 Fast Verify 例外必须**同时**满足：LOW 风险；不改可执行逻辑、数据、配置、权限或 API；不涉及金额、状态或跨模块；Diff 可以直接审查。仅标 LOW 不够。任一反例出现就恢复标准隔离。
 
+## 4.1 Human Verification Card
+
+真实环境只能由用户操作时，独立 Verifier 仍负责固定场景、预期和证据要求；用户只执行必要业务动作并反馈观察结果。Artifact、AC、Evidence 和 DONE 的机器记录由 Skill 维护，不能要求普通使用者理解或填写 schema。
+
+发卡前必须满足：当前 Artifact 可识别；Phase A 已固定黑盒预期；Phase B 已完成当前能力可做的工程复核；剩余缺口确实需要用户拥有的环境、身份、设备或业务判断。条件不满足时先处理内部缺口，不把卡片伪装成最终一步。
+
+验证卡规则：
+
+- 相同环境、身份和操作路径的 AC 合并为一张 1–5 步卡；不同权限身份或不可逆操作分开。
+- 使用业务语言写实际操作和可观察预期，不展示 TASK ID、Artifact hash、AC ID、Evidence batch、JSON 或 Guard 字段。
+- 是否必须提供截图、响应、日志、前后状态或客户确认，必须在操作前说明。
+- 只接收三类结果：A 通过；B 失败并描述现象；C 暂时无法验证并说明原因。
+
+结果处理：
+
+| 回复 | 处理 |
+| --- | --- |
+| A，且证据满足 Contract | 将用户观察写入同一任务的 `Human Verification H-xx` 小节和 Evidence batch；更新映射 AC；完成其余门禁后才 DONE |
+| A，但必要客观证据缺失 | 只追问一个最小缺口；保持 NOT_VERIFIED，不因用户说“通过”直接 PASS |
+| B | 保存失败 Evidence，映射 AC 为 FAIL，进入 Delta Repair |
+| C | 保持 NOT_VERIFIED；环境、权限或依赖使必要动作无法继续时记 BLOCKED，并保存恢复条件；不消耗代码修复次数 |
+
+普通 UI 展示或只读查询在 Contract 允许时可把脱敏回复摘要作为 Human Evidence，报告位置引用 Task Record 对应小节。API、状态变化和数据写入至少要求一项客观结果。权限、金额、库存、迁移或不可逆副作用必须按 Contract 提供授权身份、前后状态及必要回滚/对账；裸“通过”不足。
+
+同一次回复覆盖多个 AC 时共用一个 batch，由各 AC 引用。重复回复不重复建 batch。人工验证若对应旧 Artifact、旧环境或已变化的 Contract，必须复核或重验；Guard 的 `valid=true` 仍只证明记录自洽。
+
 ## 5. Evidence 与结论
 
 每条证据含：AC 编号、实际产物标识、环境与输入、实际命令/操作、真实结果、原始报告位置。共用批次只记一次，由 AC 引用。

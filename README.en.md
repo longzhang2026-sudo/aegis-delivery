@@ -13,7 +13,7 @@ A project-local Codex Skill for lightweight, evidence-first software delivery.
 Package **0.2.0** implements Long's workflow protocol **1.6**. The detailed workflow
 and operational guides are currently in Chinese; this page is the English entry point.
 
-`Request → Contract → Plan & Impact → Build → Independent Verify → Delivery & Knowledge Sync → Done`
+`Request → Contract → Plan & Impact → Build → Independent Verify → Human Verification when needed → Delivery & Knowledge Sync → Done`
 
 Use it for a reproducible bug, one feature slice, or a necessary cross-module change.
 It defines acceptance before implementation, separates builder and verifier context,
@@ -88,6 +88,13 @@ Use a separate Codex task for standard verification when no authorized isolated
 verifier capability is available. The verifier first derives black-box expectations
 from Contract/AC/Impact, then inspects implementation and executes checks. Do not
 present builder self-checks as independent verification.
+
+When the remaining check requires your real environment, account, or device, the
+Skill presents one short Human Verification Card. You reply only `A. pass`,
+`B. fail: what happened`, or `C. unavailable: why`; the Skill updates the task
+record, Evidence, delivery fields, and guard. High-risk or state-changing acceptance
+still requires the objective evidence stated on the card—a bare “pass” is not enough.
+See the [usage guide](docs/usage.md#5-%E7%9C%9F%E5%AE%9E%E7%8E%AF%E5%A2%83%E9%9C%80%E8%A6%81%E4%BA%BA%E5%B7%A5%E9%AA%8C%E8%AF%81).
 
 Create a task record from the target project's root:
 

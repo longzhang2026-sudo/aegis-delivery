@@ -49,6 +49,7 @@ $skill-installer
 - **Contract-first**：先固定目标、范围、兼容边界、AC、风险和上限。
 - **Impact-aware**：检查 Direct / Callers / Data / External / Regression，不只修改表面入口。
 - **Independent Verify**：Builder 不拥有标准路径最终 PASS 权限；Verifier 先固定预期，再读取实现。
+- **Human-friendly verification**：真实环境只能由人操作时，用户只回复通过、失败或暂时无法验证；Skill 维护内部记录。
 - **Evidence-first**：PASS 必须引用当前产物、环境、输入、操作、结果和原始报告位置。
 - **Bounded Repair**：修复、Replan 和有效执行时间均有上限，必要时进入 Human Gate。
 - **Reproducible Delivery**：交付清单覆盖 Artifact、Reproduce、Acceptance 和 Knowledge Sync。
@@ -63,6 +64,7 @@ Request
   -> Graph + Impact
   -> Execute / Builder Self Check
   -> Independent Verify
+  -> Human Verification Card（仅真实环境需要人工时）
   -> Evidence
   -> Delivery + Knowledge Sync
   -> DONE
@@ -98,6 +100,26 @@ Verify 未通过时先分类，再返回正确阶段：
 - Builder 自检不能自动升级为 Independent PASS。没有独立上下文时必须保留 `NOT_VERIFIED` 或 `BLOCKED`。
 
 只有同时满足 LOW 风险、不修改可执行逻辑/数据/配置/权限/API、不涉及金额/状态/跨模块且 Diff 可直接审查时，才能使用同上下文 Fast Verify。风险标签本身不构成例外依据。
+
+### 真实环境需要人工验证
+
+独立 Verifier 已固定预期并完成可执行检查，但剩余验收必须由用户进入测试环境操作时，Aegis Delivery 只展示一张业务语言验证卡：
+
+```text
+请验证：
+1. 打开订单详情页。
+2. 点击“查询物流”。
+3. 预期：正常物流可展示；异常数据不会导致页面报错。
+
+请回复：
+A. 通过
+B. 失败：实际现象……
+C. 暂时无法验证：原因……
+```
+
+用户不需要编辑 Task Record、填写 Artifact/AC/Evidence 或运行 Guard。Skill 自动读取当前任务与产物，按 Contract 判断证据是否充分，把回复写回同一 Task Record，并在全部门禁满足后运行 `validate-task`、进入 DONE。
+
+权限、金额、库存、迁移、不可逆副作用或 Contract 明确要求客观材料时，卡片会在操作前要求必要截图、响应、日志、前后状态或对账；裸“通过”不会自动升级 PASS。失败进入修复，无法验证保留 NOT_VERIFIED/BLOCKED 和恢复条件。完整规则见[使用手册](docs/usage.md#5-真实环境需要人工验证)。
 
 ### Deterministic Guard
 

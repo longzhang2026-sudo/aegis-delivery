@@ -90,6 +90,7 @@
 - Phase A 场景与预期：待独立 Verifier 在读取实现之前固定。
 - Phase B 补充风险：待读取实现后补充。
 - Evidence batch 说明：在机器区登记实际产物、环境、输入、动作、结果和原始报告位置；正文可补充长日志摘要，不保存敏感数据。
+- Human Verification：仅在真实环境必须由用户操作时，由 Skill 生成业务语言验证卡；收到回复后按需追加 `Human Verification H-xx` 小节并自动回填机器区，不让用户维护 schema。
 - 有效执行时间：使用粗粒度真实片段；正式修复 / Replan / Reset 首次发生时再追加说明，累计值只写机器区，恢复不清零。
 
 ## Delivery

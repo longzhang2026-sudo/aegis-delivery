@@ -23,6 +23,12 @@ CI 在 Windows、Linux、macOS 运行同一套检查，版本见 [CI 配置](../
 | 没有 CodeGraph 但可读源码 | 用搜索与源码追踪，不因插件缺失停工 |
 | Builder 宣称测试通过但无报告 | 正式结论保持 NOT_VERIFIED |
 | 标准任务没有独立上下文 | 交接或记录缺口，不假冒独立验证 |
+| 只剩真实环境需要用户操作 | 生成 1–5 步 Human Verification Card，只要求回复 A/B/C，不暴露 schema 字段 |
+| 普通 UI 验收回复 A 且证据充分 | 自动写 Human Evidence、更新 AC，并在其余门禁满足后运行 Guard |
+| 高风险验收只回复 A、缺少预先要求的客观材料 | 只追问一个最小证据缺口，保持 NOT_VERIFIED |
+| 人工验收回复 B | 记录失败 Evidence 与 AC FAIL，返回 Delta Repair |
+| 人工验收回复 C | 保持 NOT_VERIFIED/BLOCKED，写恢复条件，不消耗代码修复次数 |
+| 同一人工验收结果重复送达 | 复用已有 Evidence batch，不重复追加 |
 | 适用 Required 没运行 / Conditional 未知 | 不可整体 PASS；补足必要证据或条件 |
 | Required 在执行前有依据确认不适用 | 记录 NOT_APPLICABLE + N/A、理由和依据；不伪装成 PASS |
 | Required 已失败后改 N/A | Guard 拒绝；保留失败并按修复/Human Gate 处理 |

@@ -65,7 +65,38 @@ $aegis-delivery
 
 不能获得独立验证时，可以交付候选和缺口说明，标准任务不能声明已独立 PASS。LOW 例外须逐项符合 [协议白名单](../skills/aegis-delivery/references/protocol.md)，不能由风险标签自动获得。
 
-## 5. 失败、阻塞与继续
+## 5. 真实环境需要人工验证
+
+独立 Verifier 已固定预期并完成可执行检查，但剩余 AC 必须由用户进入测试环境、使用特定身份或设备操作时，Skill 应生成一张 Human Verification Card。用户不需要打开或编辑 `.ai-workflow`。
+
+```text
+构建和独立工程检查已完成，还需要你在测试环境确认 1 组行为。
+
+请验证：
+1. 打开订单详情页。
+2. 对测试订单点击“查询物流”。
+3. 预期：正常物流可展示；异常物流数据不会导致页面报错。
+
+证据要求：本项只需回复结果；如失败可附截图。
+
+请回复其中一种：
+A. 通过
+B. 失败：实际现象……
+C. 暂时无法验证：原因……
+```
+
+Skill 自动读取当前任务、Artifact 和待验 AC，并在收到回复后更新同一 Task Record：
+
+- A 且证据充分：生成 Human Evidence，逐 AC PASS；其余 DONE 门禁满足后运行 `validate-task` 并关闭任务。
+- A 但缺少 Contract 预先要求的材料：只追问一个必要证据。高风险操作不能凭裸“通过”PASS。
+- B：记录失败 Evidence，返回 Builder 做 Delta Repair。
+- C：保持 NOT_VERIFIED/BLOCKED，写明恢复条件，不消耗代码修复次数。
+
+普通 UI 展示或只读查询可以按 Contract 接受脱敏文字观察；API、状态变化、数据写入、权限、金额、库存、迁移或不可逆副作用应在卡片中提前要求响应、截图、日志、前后状态或对账。不要粘贴密码、Token 或完整客户资料。
+
+Artifact 无法自动绑定时，Skill 只能追问一个用户可观察的版本标识，例如页面构建号；不能让用户填写内部 hash。重复回复不得生成重复 Evidence。详细机器规则见[协议的 Human Verification Card](../skills/aegis-delivery/references/protocol.md#41-human-verification-card)。
+
+## 6. 失败、阻塞与继续
 
 正式 FAIL 后先分类和查额度，不能把每次重试都当新任务。任务记录正文按触发追加以下说明，并同步更新机器区 usage；不要在正文维护第二套累计值：
 
@@ -91,7 +122,7 @@ $aegis-delivery
 
 额度耗尽由人决定终止、缩小范围或明确追加授权，不自行恢复默认额度。正式调整 Contract 时保留旧决定与调整依据。
 
-## 6. 验收后交付
+## 7. 验收后交付
 
 最终交付必须让另一位使用者能够复现：
 
@@ -110,7 +141,7 @@ python .agents/skills/aegis-delivery/scripts/workflow.py validate-task --project
 
 只有无 ERROR 才能继续由负责人依据真实证据关闭任务。产物不一致 WARN 必须先复核 Evidence；Guard 成功本身不能作为业务 PASS。
 
-## 7. 团队与首轮试点
+## 8. 团队与首轮试点
 
 建议把不含敏感信息的 Skill、AGENTS 入口、项目配置和任务记录纳入业务项目版本控制。不要提交密钥、完整客户数据、大量敏感原始日志；报告采用必要脱敏信息和可控存储位置。
 
