@@ -123,13 +123,9 @@ C. 暂时无法验证：原因……
 
 ### Deterministic Guard
 
-`validate-task` 只读检查 Task Record 的 schema、状态组合、额度和 Evidence 引用，不会运行项目 build/test：
+交付或恢复前，Skill 会自动运行只读 Guard，检查 Task Record 的 schema、状态组合、额度和 Evidence 引用；用户不需要复制命令或判断内部字段。合法 DRAFT 缺口不会阻断，结构矛盾或 DONE 门槛不满足会停止闭环。
 
-```bash
-python .agents/skills/aegis-delivery/scripts/workflow.py validate-task --project . --id TASK-001
-```
-
-合法 DRAFT 缺口产生 WARN 并返回 0；结构矛盾或 DONE 门槛不满足产生 ERROR 并返回 2。Guard 成功只代表记录自洽，不代表业务行为已经正确。
+Guard 不会运行项目 build/test，成功只代表记录自洽，不代表业务行为已经正确。需要手工诊断记录的维护者可查阅[使用手册](docs/usage.md#7-验收后交付)。
 
 ## Skill / Plugin 能力
 

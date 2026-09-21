@@ -107,17 +107,13 @@ Resume by giving Codex the same task record, current artifact and remaining limi
 See [usage](docs/usage.md), [protocol](skills/aegis-delivery/references/protocol.md),
 [example](examples/bug-fix.md), and [design/source notes](docs/design.md).
 
-Before delivery or resume, validate the task record without modifying it:
-
-```bash
-python3 .agents/skills/aegis-delivery/scripts/workflow.py validate-task \
-  --project . --id TASK-001
-```
-
-A structurally valid draft may return warnings with exit code 0. Contradictory state or
-an unmet DONE gate returns exit code 2. The guard checks record consistency; it does not
-prove application behavior, verifier independence, or tamper-free history. Legacy v0.1
-tasks require manual migration using the [record schema](skills/aegis-delivery/references/task-record-schema.md#旧任务).
+Before delivery or resume, the Skill automatically runs its read-only record guard;
+users do not need to copy a command or interpret internal fields. A valid draft may
+retain gaps, while contradictory state or an unmet DONE gate stops closure. The guard
+checks record consistency; it does not prove application behavior, verifier independence,
+or tamper-free history. Maintainers who need manual diagnostics can use the
+[usage guide](docs/usage.md#7-%E9%AA%8C%E6%94%B6%E5%90%8E%E4%BA%A4%E4%BB%98). Legacy v0.1 tasks require manual migration using the
+[record schema](skills/aegis-delivery/references/task-record-schema.md#旧任务).
 
 ## Validate and contribute
 

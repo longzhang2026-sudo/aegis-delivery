@@ -133,7 +133,7 @@ $aegis-delivery
 
 只有协议 DONE 条件全部满足才标完成。若客户确认在 Contract 中是必需，技术验收通过后仍需该确认；若未要求，不能临时增加一道审批。
 
-标记 DONE 前运行：
+Skill 在标记 DONE 前自动运行 Guard。只有维护者诊断记录或恢复任务时，才需要手工运行：
 
 ```bash
 python .agents/skills/aegis-delivery/scripts/workflow.py validate-task --project . --id TASK-001

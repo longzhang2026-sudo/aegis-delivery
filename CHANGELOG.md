@@ -4,6 +4,7 @@
 
 - 增加 Human Verification Card：真实环境只能由用户操作时，用户只回复通过、失败或无法验证，Skill 自动维护 Evidence、AC、Delivery 与 Guard。
 - 明确高风险人工验收的客观证据要求、重复回复去重和失败/阻塞映射，并补充中英文文档、示例与回归检查。
+- README 不再要求普通使用者手工运行 Guard；诊断命令只保留在维护者文档和 Skill 内部流程。
 - 项目、插件与 Skill 从 `ai-delivery-workflow` / `$ai-delivery` 统一更名为 `aegis-delivery` / `$aegis-delivery`。
 - 新安装使用 `.agents/skills/aegis-delivery` 和新托管标记；检测到旧安装时拒绝静默双装并引导人工迁移。
 - `validate-task` 继续读取旧 `ai-delivery-record` 机器区，已有任务记录无需因改名重写。

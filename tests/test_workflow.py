@@ -378,6 +378,10 @@ class WorkflowChecks(unittest.TestCase):
         self.assertIn("description:", skill.split("---", 2)[1])
         openai_yaml = (workflow.SKILL / "agents/openai.yaml").read_text(encoding="utf-8")
         self.assertIn("allow_implicit_invocation: false", openai_yaml)
+        for readme_name in ("README.md", "README.en.md"):
+            public_readme = (REPO / readme_name).read_text(encoding="utf-8")
+            self.assertIsNone(re.search(r"workflow(?:\\)?\.py\s+validate-task", public_readme),
+                              f"Public README exposes the maintainer-only Guard command: {readme_name}")
         example = (REPO / "examples/bug-fix.md").read_text(encoding="utf-8")
         example_result = workflow.validate_record(workflow.extract_task_record(example), "EXAMPLE-BUG-001")
         self.assertTrue(example_result["valid"])
