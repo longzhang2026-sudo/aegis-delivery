@@ -42,20 +42,18 @@ Request
 
 ### 60 秒试用
 
-先让 Codex 从 GitHub 安装 Skill：
+先在 Codex 中打开目标项目，然后发送这一条请求：
 
 ```text
 $skill-installer
-从 https://github.com/longzhang2026-sudo/aegis-delivery/tree/main/skills/aegis-delivery 安装 Skill。
+把 https://github.com/longzhang2026-sudo/aegis-delivery/tree/main/skills/aegis-delivery
+直接安装到当前项目根目录的 .agents/skills，不要安装到用户级 skills。
+安装后直接运行项目内 workflow.py，依次执行 inspect -> init -> check；
+保留已有 AGENTS.md 规则，再识别实际 build/test/run 入口。
+未执行的检查保持 NOT_VERIFIED。
 ```
 
-然后在目标项目中调用：
-
-```text
-$aegis-delivery
-检查并初始化当前项目，保留已有 AGENTS.md 规则；执行 inspect -> init -> check，
-再识别实际 build/test/run 入口。未执行的检查保持 NOT_VERIFIED。
-```
+这样最终只保留项目级一份 `aegis-delivery`；下一轮可直接调用 `$aegis-delivery`。
 
 项目采用 Python 标准库和项目本地文件，不要求固定 MCP、Docker、付费 API 或第三方 Python 包。当前版本为 **v0.2.0 / Protocol V1.6**，自动检查覆盖 Windows、Linux、macOS 及 Python 3.10 / 3.13。
 

@@ -25,20 +25,18 @@ Aegis Delivery 是《轻量级 AI 软件开发标准化工作流 V1.6》的开�
 
 ## 60 秒试用
 
-先让 Codex 从本仓库安装 Skill：
+先在 Codex 中打开目标项目，然后发送这一条请求：
 
 ```text
 $skill-installer
-从 https://github.com/longzhang2026-sudo/aegis-delivery/tree/main/skills/aegis-delivery 安装 Skill。
+把 https://github.com/longzhang2026-sudo/aegis-delivery/tree/main/skills/aegis-delivery
+直接安装到当前项目根目录的 .agents/skills，不要安装到用户级 skills。
+安装后直接运行项目内 workflow.py，依次执行 inspect -> init -> check；
+保留已有 AGENTS.md 规则，再识别实际 build/test/run 入口。
+未执行的检查保持 NOT_VERIFIED。
 ```
 
-然后在目标项目中调用：
-
-```text
-$aegis-delivery
-检查并初始化当前项目，保留已有 AGENTS.md 规则；执行 inspect -> init -> check，
-再识别实际 build/test/run 入口。未执行的检查保持 NOT_VERIFIED。
-```
+这样最终只保留项目级一份 `aegis-delivery`；下一轮可直接调用 `$aegis-delivery`。
 
 只想先看效果，可直接阅读[虚构 Bug 示例](examples/bug-fix.md)；需要手动安装或迁移旧版，见[快速开始](#快速开始)。
 

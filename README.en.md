@@ -23,21 +23,18 @@ Production operations are outside the first release's scope.
 
 ## Try it in 60 seconds
 
-Ask Codex to install the Skill directly from this repository:
+Open the target project in Codex, then send this single request:
 
 ```text
 $skill-installer
-Install the skill from https://github.com/longzhang2026-sudo/aegis-delivery/tree/main/skills/aegis-delivery
-```
-
-Then invoke it inside the target project:
-
-```text
-$aegis-delivery
-Inspect and initialize this project without overwriting its existing AGENTS.md rules.
-Run inspect -> init -> check, then identify and validate its real build/test/run entry points.
+Install https://github.com/longzhang2026-sudo/aegis-delivery/tree/main/skills/aegis-delivery
+directly into .agents/skills at the current project root; do not install it into user-level skills.
+After installation, run the project-local workflow.py through inspect -> init -> check
+without overwriting existing AGENTS.md rules, then identify and validate the real build/test/run entry points.
 Keep checks that were not executed as NOT_VERIFIED.
 ```
+
+This leaves exactly one project-scoped `aegis-delivery`; invoke `$aegis-delivery` on the next turn.
 
 For a no-install preview, read the [fictional bug-fix example](examples/bug-fix.md).
 
